@@ -28,7 +28,7 @@ typedef struct abb{
  *                    Funciones auxiliares                         *
  * *****************************************************************/
 
-/* Crea un nodo. Copia la clave. Si falla devuelve NULL */
+/* Crea un nodo para el ABB. Copia la clave. Si falla devuelve NULL */
 static nodo_abb_t* nodo_crear(const char * clave, void * dato, nodo_abb_t * izq, nodo_abb_t * der)
 {
 	nodo_abb_t* nodo = malloc(sizeof(nodo_abb_t));
@@ -45,6 +45,21 @@ static nodo_abb_t* nodo_crear(const char * clave, void * dato, nodo_abb_t * izq,
 	nodo->izq = izq;
 	nodo->der = der;
 	return nodo;
+}
+
+/* Destruye el nodo recibido y sus hijos. Aplica destruir_dato al dato si es distinto de NULL */
+static void destruir_nodos(nodo_abb_t* nodo, void destruir_dato(void *))
+{
+    if (!nodo) {
+        return;
+    }
+    destruir_nodos(nodo->izq, destruir_dato);
+    destruir_nodos(nodo->der, destruir_dato);
+    if (destruir_dato) {
+        destruir_dato(nodo->dato);
+    }
+    free(nodo->clave);
+    free(nodo);
 }
 
 static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, const abb_t* arbol){
@@ -177,30 +192,18 @@ bool abb_pertenece(const abb_t *arbol, const char *clave){
 
 // Funcion que permite saber la cantidad de elemtos del arbol.
 // Post: devuelve la cantidad de elemento del arbol.
-size_t abb_cantidad(abb_t *arbol){
+size_t abb_cantidad(abb_t *arbol)
+{
 	return arbol->cantidad;
-}
-
-// Caso base, el nodo es una hoja(rama sin hijos)
-// En caso de que el "hijo" sea "hoja", destruyo la "hoja".
-static void destruir_nodo(nodo_abb_t* nodo_abb, void destruir_dato(void *)){
-
-	if (nodo_abb->izq != NULL){
-		destruir_nodo(nodo_abb->izq, destruir_dato);
-	}
-	if (nodo_abb->der != NULL) {
-		destruir_nodo(nodo_abb->der, destruir_dato);
-	}
-	if (destruir_dato != NULL) destruir_dato(nodo_abb->dato);
-	free(nodo_abb->clave);
-	free(nodo_abb);
 }
 
 // Destruye el arbol previamente creado.
 // Pre: el arbol debe existir.
 // Post: destruye el arbol.
-void abb_destruir(abb_t *arbol){
-	if (arbol->raiz != NULL) destruir_nodo(arbol->raiz,arbol->destruir_dato);
+void abb_destruir(abb_t *arbol)
+{
+	if (arbol->raiz)
+        destruir_nodos(arbol->raiz, arbol->destruir_dato);
 	free(arbol);
 }
 
