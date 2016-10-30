@@ -13,10 +13,10 @@ typedef struct nodo_abb {
 	void *dato;
 	struct nodo_abb *izq;
 	struct nodo_abb *der;
-} nodo_abb_t;
+} abb_nodo_t;
 
 typedef struct abb{
-	nodo_abb_t *raiz;
+	abb_nodo_t *raiz;
 	abb_comparar_clave_t cmp;
 	abb_destruir_dato_t destruir_dato;
 	size_t cantidad;
@@ -27,9 +27,9 @@ typedef struct abb{
  * *****************************************************************/
 
 /* Crea un nodo para el ABB. Copia la clave. Si falla devuelve NULL */
-static nodo_abb_t* nodo_crear(const char * clave, void * dato, nodo_abb_t * izq, nodo_abb_t * der)
+static abb_nodo_t* nodo_crear(const char * clave, void * dato, abb_nodo_t * izq, abb_nodo_t * der)
 {
-	nodo_abb_t* nodo = malloc(sizeof(nodo_abb_t));
+	abb_nodo_t* nodo = malloc(sizeof(abb_nodo_t));
 
 	if (!nodo) {
 		return NULL;
@@ -46,7 +46,7 @@ static nodo_abb_t* nodo_crear(const char * clave, void * dato, nodo_abb_t * izq,
 }
 
 /* Destruye el nodo recibido y sus hijos. Aplica destruir_dato al dato si es distinto de NULL */
-static void destruir_nodos(nodo_abb_t* nodo, void destruir_dato(void *))
+static void destruir_nodos(abb_nodo_t* nodo, void destruir_dato(void *))
 {
     if (!nodo) {
         return;
@@ -60,13 +60,13 @@ static void destruir_nodos(nodo_abb_t* nodo, void destruir_dato(void *))
     free(nodo);
 }
 
-static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, abb_comparar_clave_t cmp)
+static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar_clave_t cmp)
 {
 	if (!raiz)
         return NULL;
-	if (cmp(raiz->clave,clave) == 0)
+	else if (cmp(raiz->clave,clave) == 0)
 		return raiz;
-	if (cmp(raiz->clave,clave) > 0)
+	else if (cmp(raiz->clave,clave) > 0)
 		return buscar_nodo(raiz->izq, clave, cmp);
 	else
         return buscar_nodo(raiz->der, clave, cmp);
@@ -76,7 +76,7 @@ static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, abb_comparar
 // sea a derecha o izquierda el nodo que me pasan como dato
 // devuelvo un puntero para insertarlo alli.
 // Uso const por que NO debo modificarlo solo buscar.
-static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char *clave,  abb_t* arbol){
+static bool buscar_ubicacion_nodo(abb_nodo_t* raiz,abb_nodo_t* nodo, const char *clave,  abb_t* arbol){
 
 	if (arbol->raiz == NULL ) {
 		arbol->raiz = nodo;
@@ -111,6 +111,17 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 	return false;
 }
 
+/* Inserta un nodo */
+abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_comparar_clave_t cmp, const char * clave, void * dato)
+{
+    if (!nodo)
+        return nodo_crear(clave, dato, NULL, NULL);
+    else if (cmp(nodo->clave, clave) >= 0)
+        return insertar_nodo(nodo->der, cmp, clave, dato); // Las claves iguales se ubican hacia la derecha
+    else
+        return insertar_nodo(nodo->izq, cmp, clave, dato);
+}
+
 /* *****************************************************************
  *                    Primitivas del ABB                           *
  * *****************************************************************/
@@ -139,11 +150,9 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 // se reemplaza el valor pevio.
 // Pre: El ABB fue creado.
 // Post: Devuelve true al almacenar con éxito, o false en caso de error.
-bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
-
-	if (arbol == NULL) return false;
-
-	nodo_abb_t* nodo = nodo_crear(clave, dato, NULL, NULL);
+bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
+{
+	abb_nodo_t* nodo = nodo_crear(clave, dato, NULL, NULL);
 	if (!nodo) return false;
 
 // Hice que busque la posicion para guardarlo al final. Agrega la cantidad.
@@ -159,8 +168,8 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 void *abb_obtener(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
-	nodo_abb_t* raiz = arbol->raiz;
-	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
+	abb_nodo_t* raiz = arbol->raiz;
+	abb_nodo_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
 	if (aux == NULL) return NULL;
 
 	return aux->dato;
@@ -172,8 +181,8 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 bool abb_pertenece(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
-	nodo_abb_t* raiz = arbol->raiz;
-	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
+	abb_nodo_t* raiz = arbol->raiz;
+	abb_nodo_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
 	if (aux == NULL) return false;
 	return true;
 }
