@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include "abb.h"
 
-#define IGUALES 0
-
 /* *****************************************************************
  *            Definición de las estructuras de datos               *
  * *****************************************************************/
@@ -62,26 +60,16 @@ static void destruir_nodos(nodo_abb_t* nodo, void destruir_dato(void *))
     free(nodo);
 }
 
-static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, const abb_t* arbol){
-
-	if (raiz == NULL) return NULL;
-
-	if (arbol->cmp(raiz->clave,clave) == IGUALES){
-		return raiz; // CASO BASE
-	}
-
-	if ((raiz->der == NULL) && (raiz->izq == NULL)){
-		return NULL; // NO ESTA
-	}
-
-	if (arbol->cmp(raiz->clave,clave) > IGUALES){
-		raiz = raiz->izq;
-		return buscar_nodo(raiz,clave,arbol);
-	}
-
-	raiz = raiz->der;
-	return buscar_nodo(raiz,clave,arbol);
-
+static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, abb_comparar_clave_t cmp)
+{
+	if (!raiz)
+        return NULL;
+	if (cmp(raiz->clave,clave) == 0)
+		return raiz;
+	if (cmp(raiz->clave,clave) > 0)
+		return buscar_nodo(raiz->izq, clave, cmp);
+	else
+        return buscar_nodo(raiz->der, clave, cmp);
 }
 
 // La idea de la funcion es buscar el nodo en donde tenga que insertar
@@ -97,7 +85,7 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 	}
 
 
-	if (arbol->cmp(raiz->clave,clave) == IGUALES){
+	if (arbol->cmp(raiz->clave,clave) == 0){
 		if (arbol->destruir_dato != NULL) arbol->destruir_dato(raiz->dato);
 		raiz->dato = nodo->dato;
 		free(nodo->clave);
@@ -105,7 +93,7 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 		return true;
 	}
 
-	if (arbol->cmp(raiz->clave,clave) > IGUALES){
+	if (arbol->cmp(raiz->clave,clave) > 0){
 		if (raiz->izq == NULL ){
 			raiz->izq = nodo;
 			arbol->cantidad++;
@@ -172,7 +160,7 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
 	nodo_abb_t* raiz = arbol->raiz;
-	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol);
+	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
 	if (aux == NULL) return NULL;
 
 	return aux->dato;
@@ -185,7 +173,7 @@ bool abb_pertenece(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
 	nodo_abb_t* raiz = arbol->raiz;
-	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol);
+	nodo_abb_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
 	if (aux == NULL) return false;
 	return true;
 }
