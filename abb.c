@@ -117,9 +117,13 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 // la funcion cmp no puede ser NULL.
 // Post: devuelve un ABB con su funcion de comparar, destruccion
 // y con raiz NULL. En caso de que no pueda crearla devuelve NULL.
-abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato){
-	abb_t* arbol = malloc(sizeof(abb_t)) ;
-	if(!arbol) return NULL;
+abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
+{
+	abb_t* arbol = malloc(sizeof(abb_t));
+
+	if (!arbol) {
+        return NULL;
+    }
 	arbol->raiz = NULL;
 	arbol->cantidad = 0;
 	arbol->cmp = cmp;
