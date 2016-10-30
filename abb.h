@@ -4,12 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
-/******************************************************************
-*                  DEFINICION TIPOS DE DATOS
-******************************************************************/
-
-typedef struct abb_iter abb_iter_t;
+/* *****************************************************************
+ *                 Definición estructura de datos                  *
+ * *****************************************************************/
 
 typedef struct abb abb_t;
 
@@ -17,11 +14,11 @@ typedef int (*abb_comparar_clave_t) (const char *, const char *);
 
 typedef void (*abb_destruir_dato_t) (void *);
 
+typedef struct abb_iter abb_iter_t;
 
-/******************************************************************
-*                  DEFINICION FUNCIONES ABB
-******************************************************************/
-
+/* *****************************************************************
+ *                 Primitivas del ABB                              *
+ * *****************************************************************/
 
 // Crea el ABB en caso de que no lo pueda crear devuelve NULL
 // Pre: se deben pasar las funciones cmp destruir_dato. Necesariamente
@@ -68,21 +65,18 @@ size_t abb_cantidad(abb_t *arbol);
 // Post: destruye el arbol.
 void abb_destruir(abb_t *arbol);
 
-
-/******************************************************************
-*                       ITERADOR INTERNO
-******************************************************************/
+/* *****************************************************************
+ *                 Primitivas del iterador interno                 *
+ * *****************************************************************/
 
 // Pre: el arbol existe y se debe mandar una funcion visitar.
 // Post: recorre cada uno de los elementos del arbol, segun el
 // resultado de la funcion vistar.
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
-
-
-/******************************************************************
-*                       ITERADOR EXTERNO
-******************************************************************/
+/* *****************************************************************
+ *                 Primitivas del iterador externo                 *
+ * *****************************************************************/
 
 // Crea el iterador del arbol y lo deja posicionado en el
 // nodo actual.
@@ -114,4 +108,4 @@ bool abb_iter_in_al_final(const abb_iter_t *iter);
 void abb_iter_in_destruir(abb_iter_t* iter);
 
 
-#endif
+#endif // ABB_H
