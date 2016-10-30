@@ -8,6 +8,7 @@
 /******************************************************************
 *                  DEFINICION TIPOS DE DATOS
 ******************************************************************/
+
 typedef struct abb_iter abb_iter_t;
 
 typedef struct abb abb_t;

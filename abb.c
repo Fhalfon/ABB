@@ -10,10 +10,6 @@
 *                  DEFINICION TIPOS DE DATOS
 ******************************************************************/
 
-typedef int (*abb_comparar_clave_t) (const char *, const char *);
-
-typedef void (*abb_destruir_dato_t) (void *);
-
 typedef struct nodo_abb{
 	char *clave;
 	void *dato;
