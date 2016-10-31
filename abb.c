@@ -32,6 +32,8 @@ typedef struct abb{
 *                  IMPLEMENTACION DE FUNCIONES ABB
 ******************************************************************/
 
+static void *borrar_nodo(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol);
+
 
 // Crea el ABB en caso de que no lo pueda crear devuelve NULL
 // Pre: se deben pasar las funciones cmp destruir_dato. Necesariamente
@@ -48,6 +50,7 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato){
 	return arbol;
 }
 
+
 //Funcion auxiliar para la creacion de nodos
 
 static nodo_abb_t* nodo_crear(){
@@ -61,6 +64,7 @@ static nodo_abb_t* nodo_crear(){
 	nodo->der = NULL;
 	return nodo;
 }
+
 
 static nodo_abb_t* buscar_nodo(nodo_abb_t* raiz, const char* clave, const abb_t* arbol){
 
@@ -123,10 +127,7 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 	return false;
 }
 
-// Almacena un dato en el ABB. Si no se encuentra la clave, se crea un nodo, sino
-// se reemplaza el valor pevio.
-// Pre: El ABB fue creado.
-// Post: Devuelve true al almacenar con éxito, o false en caso de error.
+
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 
 	if (arbol == NULL) return false;
@@ -145,13 +146,130 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 
 }
 
+// Funcion auxiliar para buscar el nodo a borrar.
+// Pre: se deve mandar como actual el nodo a partir del cual se quiere buscar
+// y en anterior, el anterior a este. En caso de que el actual sea la raiz
+// anterior debe ser un nodo_abb_t* anterior == NULL.
+// Post: el dato mandado en actual pasa a ser el que se quiere borrar y
+// el anterior es el que apunta al actual.
+static void *abb_buscar_borrar(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol, const char *clave){
+	// Caso Borde: esta vacio.
+	if (actual == NULL) return NULL;
+	// Caso Base.
+	// Devuelvo el actual sin cambios.
+	if (actual->clave == NULL) return NULL;
+	if (arbol->cmp(actual->clave,clave) == IGUALES) return borrar_nodo(actual,anterior,arbol);
 
 
-// Similar a abb_borrar, solo que en este caso no destruye el nodo, solo devuelve
-// el valor, o NULL de no hallarse.
-// Pre: El ABB fue creado.
-// Post: Devuelve el dato almacenado, o devuelve NULL cuando no se cumplan ciertas
-// condiciones (Por ej.: clave no pertenece)
+// Se supone que si la funcion cmp devuelve algo mayor a 0 es
+// porque el segundo operando es mayor.
+	if (arbol->cmp(actual->clave,clave) > IGUALES) return abb_buscar_borrar(actual->izq,actual,arbol,clave);
+	else return abb_buscar_borrar(actual->der,actual,arbol,clave);
+}
+
+// Funcion que borra el caso de que un nodo sea hoja sin hijos.
+// Post: devuelte el dato del nodo
+static void *borrar_caso_1(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol){
+
+	void *dato = actual->dato;
+
+	if (anterior == NULL) arbol->raiz = NULL;
+	else{
+		if (anterior->izq == actual) anterior->izq = NULL;
+		if (anterior->der == actual) anterior->der = NULL;
+	}
+	arbol->cantidad--;
+	free(actual->clave);
+	free(actual);
+	return dato;
+}
+
+// Funcion que borra en el caso de que el nodo sea una hoja con 1 solo hijo.
+// Post: devuelte el dato del nodo
+static void *borrar_caso_2(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol){
+
+
+	void *dato = actual->dato;
+	if (anterior == NULL){
+		if (actual->izq != NULL) arbol->raiz = actual->izq;
+		if (actual->der != NULL) arbol->raiz = actual->der;
+	}
+	else{
+		if (anterior->izq == actual){
+			if (actual->izq != NULL) anterior->izq = actual->izq;
+			if (actual->der != NULL) anterior->izq = actual->der;
+		}
+
+		if (anterior->der == actual){
+			if (actual->izq != NULL) anterior->der = actual->izq;
+			if (actual->der != NULL) anterior->der = actual->der;
+		}
+	}
+	arbol->cantidad--;
+	free(actual->clave);
+	free(actual);
+	return dato;
+}
+
+
+// Funcion que busca el minimo valor a partir de una hoja.
+// Post: devuelte el dato del nodo
+static void *buscar_reemplazante(nodo_abb_t* actual){
+
+	if (actual->izq != NULL) return buscar_reemplazante(actual->izq);
+	return actual;
+}
+
+// Funcion que borra en el caso de que el nodo tenga 2 hijos.
+// Post: devuelte el dato del nodo
+ void* borrar_caso_3(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol){
+
+	void* dato = actual->dato;
+	nodo_abb_t* reemplazante = actual->der;
+	reemplazante = buscar_reemplazante(reemplazante);
+
+	char* clave_aux = malloc((strlen(reemplazante->clave) + 1)*sizeof(char));
+	if (clave_aux == NULL)
+	{
+		free(reemplazante);
+		return NULL;
+	}
+	strcpy(clave_aux,reemplazante->clave);
+
+	void* dato_aux = abb_borrar(arbol,clave_aux);
+
+	free(actual->clave);
+	actual->clave = clave_aux;
+	actual->dato = dato_aux;
+	return dato;
+}
+
+// Funcion que elije que tipo de caso es (sin hijo, 1 hijo, 2 hijos)
+// Post: devuelte el dato del nodo
+static void *borrar_nodo(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol){
+
+	if ( (actual->izq == NULL) && (actual->der == NULL) ){
+		return borrar_caso_1(actual,anterior,arbol);
+	}
+	if ( (actual->izq != NULL) && (actual->der != NULL) ){
+		return borrar_caso_3(actual,anterior,arbol);
+	}
+	return borrar_caso_2(actual,anterior,arbol);
+
+}
+
+// Borra el nodo correspondiente a la clave ingresada.
+// Post: devuelte el dato del nodo.
+void *abb_borrar(abb_t *arbol, const char *clave){
+	if (arbol == NULL) return NULL;
+	nodo_abb_t *anterior = NULL;
+	nodo_abb_t *actual = arbol->raiz;
+// Caso borde de que este vacio.
+	if (actual == NULL) return NULL;
+	return 	abb_buscar_borrar(actual,anterior,arbol,clave);
+
+}
+
 void *abb_obtener(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
@@ -162,9 +280,6 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 	return aux->dato;
 }
 
-// Averigua si existe un nodo en el ABB con la clave provista.
-// Pre: El ABB fue creado.
-// Post: Devuelve true de encontrar el nodo, o false en caso contrario.
 bool abb_pertenece(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
@@ -196,9 +311,10 @@ static void destruir_nodo(nodo_abb_t* nodo_abb, void destruir_dato(void *)){
 }
 
 // Destruye el arbol previamente creado.
-// Pre: el arbol debe existir.
-// Post: destruye el arbol.
+// Pre: el arbol deve existir.
+// Post: destruye el arbol y todos sus elementos.
 void abb_destruir(abb_t *arbol){
 	if (arbol->raiz != NULL) destruir_nodo(arbol->raiz,arbol->destruir_dato);
 	free(arbol);
 }
+
