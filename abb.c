@@ -127,7 +127,10 @@ static bool buscar_ubicacion_nodo(nodo_abb_t* raiz,nodo_abb_t* nodo, const char 
 	return false;
 }
 
-
+// Almacena un dato en el ABB. Si no se encuentra la clave, se crea un nodo, sino
+// se reemplaza el valor pevio.
+// Pre: El ABB fue creado.
+// Post: Devuelve true al almacenar con éxito, o false en caso de error.
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 
 	if (arbol == NULL) return false;
@@ -258,8 +261,10 @@ static void *borrar_nodo(nodo_abb_t *actual, nodo_abb_t *anterior, abb_t *arbol)
 
 }
 
-// Borra el nodo correspondiente a la clave ingresada.
-// Post: devuelte el dato del nodo.
+// Devuelve un dato almacenado en el ABB, y destruye el nodo que lo contiene.
+// Pre: El ABB fue creado.
+// Post: Devuelve el dato almacenado y destruye el nodo que lo contenía, o devuelve
+// NULL cuando no se cumplan ciertas condiciones (Por ej.: clave no pertenece)
 void *abb_borrar(abb_t *arbol, const char *clave){
 	if (arbol == NULL) return NULL;
 	nodo_abb_t *anterior = NULL;
@@ -270,6 +275,12 @@ void *abb_borrar(abb_t *arbol, const char *clave){
 
 }
 
+
+// Similar a abb_borrar, solo que en este caso no destruye el nodo, solo devuelve
+// el valor, o NULL de no hallarse.
+// Pre: El ABB fue creado.
+// Post: Devuelve el dato almacenado, o devuelve NULL cuando no se cumplan ciertas
+//       condiciones (Por ej.: clave no pertenece)
 void *abb_obtener(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
@@ -280,6 +291,9 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 	return aux->dato;
 }
 
+// Averigua si existe un nodo en el ABB con la clave provista.
+// Pre: El ABB fue creado.
+// Post: Devuelve true de encontrar el nodo, o false en caso contrario.
 bool abb_pertenece(const abb_t *arbol, const char *clave){
 
 	if (arbol->raiz == NULL) return NULL;
