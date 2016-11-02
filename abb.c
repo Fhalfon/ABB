@@ -111,14 +111,17 @@ static bool buscar_ubicacion_nodo(abb_nodo_t* raiz,abb_nodo_t* nodo, const char 
 }
 
 /* Inserta un nodo */
-abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_comparar_clave_t cmp, const char * clave, void * dato)
+abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_comparar_clave_t cmp)
 {
-    if (!nodo)
-        return nodo_crear(clave, dato, NULL, NULL);
-    else if (cmp(nodo->clave, clave) >= 0)
-        return insertar_nodo(nodo->der, cmp, clave, dato); // Las claves iguales se ubican hacia la derecha
-    else
-        return insertar_nodo(nodo->izq, cmp, clave, dato);
+    if (!nodo) {
+        return nuevo;
+    } else if (cmp(nodo->clave, nuevo->clave) >= 0) {   // Las claves iguales se ubican hacia la derecha
+        nodo->der = insertar_nodo(nodo->der, nuevo, cmp);
+        return nodo->der;
+    } else {
+        nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp);
+        return nodo->izq;
+    }
 }
 
 /// FUNCIONES NUEVAS
@@ -240,17 +243,16 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 
 
 // Almacena un dato en el ABB. Si no se encuentra la clave, se crea un nodo, sino
-// se reemplaza el valor pevio.
+// se reemplaza el valor previo.
 // Pre: El ABB fue creado.
 // Post: Devuelve true al almacenar con éxito, o false en caso de error.
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 {
-	abb_nodo_t* nodo = nodo_crear(clave, dato, NULL, NULL);
-	if (!nodo) return false;
-
-// Hice que busque la posicion para guardarlo al final. Agrega la cantidad.
-	return buscar_ubicacion_nodo(arbol->raiz,nodo,clave,arbol);
-
+	abb_nodo_t* nuevo = nodo_crear(clave, dato, NULL, NULL);
+	if (!nuevo) return false;
+    arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp);
+    ++(arbol->cantidad);
+	return true;
 }
 
 // Similar a abb_borrar, solo que en este caso no destruye el nodo, solo devuelve
