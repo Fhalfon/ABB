@@ -76,14 +76,13 @@ static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar
 // sea a derecha o izquierda el nodo que me pasan como dato
 // devuelvo un puntero para insertarlo alli.
 // Uso const por que NO debo modificarlo solo buscar.
-static bool buscar_ubicacion_nodo(abb_nodo_t* raiz,abb_nodo_t* nodo, const char *clave,  abb_t* arbol){
-
+static bool buscar_ubicacion_nodo(abb_nodo_t* raiz,abb_nodo_t* nodo, const char *clave,  abb_t* arbol)
+{
 	if (arbol->raiz == NULL ) {
 		arbol->raiz = nodo;
 		arbol->cantidad++;
 		return true;
 	}
-
 
 	if (arbol->cmp(raiz->clave,clave) == 0){
 		if (arbol->destruir_dato != NULL) arbol->destruir_dato(raiz->dato);
@@ -120,6 +119,100 @@ abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_comparar_clave_t cmp, const ch
         return insertar_nodo(nodo->der, cmp, clave, dato); // Las claves iguales se ubican hacia la derecha
     else
         return insertar_nodo(nodo->izq, cmp, clave, dato);
+}
+
+/// FUNCIONES NUEVAS
+
+
+// Funcion que borra el caso de que un nodo sea hoja sin hijos.
+// Post: devuelte el dato del nodo
+static void *borrar_caso_1(abb_nodo_t *actual, abb_nodo_t *anterior, abb_t *arbol){
+
+	void *dato = actual->dato;
+
+	if (anterior == NULL) arbol->raiz = NULL;
+	else{
+		if (anterior->izq == actual) anterior->izq = NULL;
+		if (anterior->der == actual) anterior->der = NULL;
+	}
+	arbol->cantidad--;
+	free(actual->clave);
+	free(actual);
+	return dato;
+}
+
+// Funcion que borra en el caso de que el nodo sea una hoja con 1 solo hijo.
+// Post: devuelte el dato del nodo
+static void *borrar_caso_2(abb_nodo_t *actual, abb_nodo_t *anterior, abb_t *arbol){
+
+
+	void *dato = actual->dato;
+	if (anterior == NULL){
+		if (actual->izq != NULL) arbol->raiz = actual->izq;
+		if (actual->der != NULL) arbol->raiz = actual->der;
+	}
+	else{
+		if (anterior->izq == actual){
+			if (actual->izq != NULL) anterior->izq = actual->izq;
+			if (actual->der != NULL) anterior->izq = actual->der;
+		}
+
+		if (anterior->der == actual){
+			if (actual->izq != NULL) anterior->der = actual->izq;
+			if (actual->der != NULL) anterior->der = actual->der;
+		}
+	}
+	arbol->cantidad--;
+	free(actual->clave);
+	free(actual);
+	return dato;
+}
+
+
+// Funcion que busca el minimo valor a partir de una hoja.
+// Post: devuelte el dato del nodo
+static void *buscar_reemplazante(abb_nodo_t* actual){
+
+	if (actual->izq != NULL) return buscar_reemplazante(actual->izq);
+	return actual;
+}
+
+// Funcion que borra en el caso de que el nodo tenga 2 hijos.
+// Post: devuelte el dato del nodo
+void* borrar_caso_3(abb_nodo_t *actual, abb_t *arbol){
+
+	void* dato = actual->dato;
+	abb_nodo_t* reemplazante = actual->der;
+	reemplazante = buscar_reemplazante(reemplazante);
+
+	char* clave_aux = malloc((strlen(reemplazante->clave) + 1)*sizeof(char));
+	if (clave_aux == NULL)
+	{
+		free(reemplazante);
+		return NULL;
+	}
+	strcpy(clave_aux,reemplazante->clave);
+
+	void* dato_aux = abb_borrar(arbol,clave_aux);
+
+	free(actual->clave);
+	actual->clave = clave_aux;
+	actual->dato = dato_aux;
+	return dato;
+}
+
+// Funcion que elije que tipo de caso es (sin hijo, 1 hijo, 2 hijos)
+// Post: devuelte el dato del nodo
+static void *borrar_nodo(abb_nodo_t *actual, abb_nodo_t *anterior, abb_t *arbol){
+
+	if ( (actual->izq == NULL) && (actual->der == NULL) ){
+		return borrar_caso_1(actual,anterior,arbol);
+	}
+	if ( (actual->izq != NULL) && (actual->der != NULL) ){
+		return borrar_caso_3(actual,arbol);
+	}
+	return borrar_caso_2(actual,anterior,arbol);
+
 }
 
 /* *****************************************************************
@@ -202,6 +295,44 @@ void abb_destruir(abb_t *arbol)
 	if (arbol->raiz)
         destruir_nodos(arbol->raiz, arbol->destruir_dato);
 	free(arbol);
+}
+
+///////////////////////
+// Funcion auxiliar para buscar el nodo a borrar.
+// Pre: se deve mandar como actual el nodo a partir del cual se quiere buscar
+// y en anterior, el anterior a este. En caso de que el actual sea la raiz
+// anterior debe ser un abb_nodo_t* anterior == NULL.
+// Post: el dato mandado en actual pasa a ser el que se quiere borrar y
+// el anterior es el que apunta al actual.
+static void *abb_buscar_borrar(abb_nodo_t *actual, abb_nodo_t *anterior, abb_t *arbol, const char *clave){
+	// Caso Borde: esta vacio.
+	if (actual == NULL) return NULL;
+	// Caso Base.
+	// Devuelvo el actual sin cambios.
+	if (actual->clave == NULL) return NULL;
+	if (arbol->cmp(actual->clave,clave) == 0)
+        return borrar_nodo(actual,anterior,arbol);
+
+
+// Se supone que si la funcion cmp devuelve algo mayor a 0 es
+// porque el segundo operando es mayor.
+	if (arbol->cmp(actual->clave,clave) > 0) return abb_buscar_borrar(actual->izq,actual,arbol,clave);
+	else return abb_buscar_borrar(actual->der,actual,arbol,clave);
+}
+
+
+// Devuelve un dato almacenado en el ABB, y destruye el nodo que lo contiene.
+// Pre: El ABB fue creado.
+// Post: Devuelve el dato almacenado y destruye el nodo que lo contenía, o devuelve
+// NULL cuando no se cumplan ciertas condiciones (Por ej.: clave no pertenece)
+void *abb_borrar(abb_t *arbol, const char *clave){
+	if (arbol == NULL) return NULL;
+	abb_nodo_t *anterior = NULL;
+	abb_nodo_t *actual = arbol->raiz;
+// Caso borde de que este vacio.
+	if (actual == NULL) return NULL;
+	return abb_buscar_borrar(actual,anterior,arbol,clave);
+
 }
 
 /* *****************************************************************
