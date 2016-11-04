@@ -162,6 +162,7 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 // Post: Devuelve true al almacenar con éxito, o false en caso de error.
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 {
+    if (!clave) return NULL; // La clave debe ser válida
 	abb_nodo_t* nuevo = nodo_crear(clave, dato, NULL, NULL);
 	if (!nuevo) return false;
     arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp);
@@ -178,6 +179,7 @@ void *abb_borrar(abb_t *arbol, const char *clave)
     abb_nodo_t * borrado;
     void * dato_salida;
 
+    if (!clave) return NULL; // La clave debe ser válida
 	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, borrado);
     if (!borrado) {
         return NULL;
@@ -196,6 +198,7 @@ void *abb_borrar(abb_t *arbol, const char *clave)
 // condiciones (Por ej.: clave no pertenece)
 void *abb_obtener(const abb_t *arbol, const char *clave)
 {
+    if (!clave) return NULL; // La clave debe ser válida
 	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return NULL;
@@ -208,6 +211,7 @@ void *abb_obtener(const abb_t *arbol, const char *clave)
 // Post: Devuelve true de encontrar el nodo, o false en caso contrario.
 bool abb_pertenece(const abb_t *arbol, const char *clave)
 {
+    if (!clave) return NULL; // La clave debe ser válida
 	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return false;
