@@ -107,5 +107,7 @@ bool abb_iter_in_al_final(const abb_iter_t *iter);
 // Pre: el iterador debe existir.
 void abb_iter_in_destruir(abb_iter_t* iter);
 
+// Ejecuta pruebas unitarias sobre la implementación
+void pruebas_abb_alumno(void);
 
 #endif // ABB_H
