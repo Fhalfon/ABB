@@ -64,9 +64,9 @@ static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar
 {
 	if (!raiz)
         return NULL;
-	else if (cmp(raiz->clave,clave) == 0)
+	else if (cmp(clave,raiz->clave) == 0)
 		return raiz;
-	else if (cmp(raiz->clave,clave) > 0)
+	else if (cmp(clave,raiz->clave) > 0)
 		return buscar_nodo(raiz->izq, clave, cmp);
 	else
         return buscar_nodo(raiz->der, clave, cmp);
@@ -77,7 +77,7 @@ static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_com
 {
     if (!nodo) {
         return nuevo;
-    } else if (cmp(nodo->clave, nuevo->clave) >= 0) {   // Las claves iguales se ubican hacia la derecha
+    } else if (cmp(nuevo->clave, nodo->clave) >= 0) {   // Las claves iguales se ubican hacia la derecha
         nodo->der = insertar_nodo(nodo->der, nuevo, cmp);
         return nodo->der;
     } else {
@@ -110,10 +110,10 @@ static abb_nodo_t * buscar_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp,
     if (!actual) {
         nodo_salida = NULL;
         return NULL;
-    } else if (cmp(actual->clave, clave) < 0) {
+    } else if (cmp(clave, actual->clave) < 0) {
         actual->izq = buscar_borrar(actual->izq, cmp, clave, nodo_salida);
         return actual;
-    } else if (cmp(actual->clave, clave) > 0) {
+    } else if (cmp(clave, actual->clave) > 0) {
         actual->der = buscar_borrar(actual->der, cmp, clave, nodo_salida);
         return actual;
     } else {
@@ -194,8 +194,8 @@ void *abb_borrar(abb_t *arbol, const char *clave)
 // Pre: El ABB fue creado.
 // Post: Devuelve el dato almacenado, o devuelve NULL cuando no se cumplan ciertas
 // condiciones (Por ej.: clave no pertenece)
-void *abb_obtener(const abb_t *arbol, const char *clave){
-
+void *abb_obtener(const abb_t *arbol, const char *clave)
+{
 	if (arbol->raiz == NULL) return NULL;
 	abb_nodo_t* raiz = arbol->raiz;
 	abb_nodo_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
