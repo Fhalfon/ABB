@@ -4,8 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "abb.h"
-#define IZQ 0
-#define DER 1
 
 /* *****************************************************************
  *            Definición de las estructuras de datos               *
@@ -117,58 +115,38 @@ static abb_nodo_t * buscar_maximo(abb_nodo_t * actual, abb_nodo_t ** maximo)
     }
 }
 
-/* Busca el nodo con la menor clave en el subárbol dado, lo devuelve a través de minimo */
-static abb_nodo_t * buscar_minimo(abb_nodo_t * actual, abb_nodo_t ** minimo)
-{
-    if (!actual) {
-        *minimo = NULL;
-        return NULL;
-    } else if (actual->izq) {
-        /* no estoy en el mínimo todavía */
-        actual->izq = buscar_minimo(actual->izq, minimo);
-        return actual;
-    } else {
-        /* actual->izq == NULL, actual es el mínimo */
-        *minimo = actual;
-        return actual->der;
-    }
-}
-
 /* Busca el nodo que debe borrar, lo borra y engancha el reemplazo con los hijos que tenía el nodo borrado */
-static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t ** nodo_salida, bool dir_anterior)
+static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t ** nodo_salida)
 {
     if (!actual) {
         *nodo_salida = NULL;
         return NULL;
     } else if (cmp(clave, actual->clave) < 0) {
-        actual->izq = buscar_nodo_borrar(actual->izq, cmp, clave, nodo_salida, IZQ);
+        actual->izq = buscar_nodo_borrar(actual->izq, cmp, clave, nodo_salida);
         return actual;
     } else if (cmp(clave, actual->clave) > 0) {
-        actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida, DER);
+        actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida);
         return actual;
     } else {
         /* clave == actual->clave, actual es el nodo a borrar */
         abb_nodo_t * reemplazo;
-        abb_nodo_t * reemplazo_hijo;
+        abb_nodo_t * reemplazo_izq;
 
         *nodo_salida = actual;
-        if (dir_anterior == IZQ) {
-            reemplazo_hijo = buscar_maximo(actual->izq, &reemplazo);
+        if (actual->izq) {
+            /* Tomamos como reemplazo al máximo del subárbol izquierdo */
+            reemplazo_izq = buscar_maximo(actual->izq, &reemplazo);
         } else {
-            reemplazo_hijo = buscar_minimo(actual->der, &reemplazo);
+            /* Si no hay árbol izquierdo, unimos al padre con el subárbol derecho */
+            return actual->der;
         }
         if (!reemplazo) {
             return NULL;
         }
         /* Si el reemplazo no es NULL (el borrado no es una hoja) */
         /* Debo "salvar" a sus hijos */
-        if (dir_anterior == IZQ) {
-            reemplazo->izq = reemplazo_hijo;
-            reemplazo->der = actual->der;
-        } else {
-            reemplazo->izq = actual->izq;
-            reemplazo->der = reemplazo_hijo;
-        }
+        reemplazo->izq = reemplazo_izq;
+        reemplazo->der = actual->der;
         return reemplazo;
     }
 }
@@ -203,9 +181,15 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 // Post: Devuelve true al almacenar con éxito, o false en caso de error.
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 {
-    if (!clave) return NULL; // La clave debe ser válida
-	abb_nodo_t* nuevo = nodo_crear(clave, dato, NULL, NULL);
-	if (!nuevo) return false;
+	abb_nodo_t* nuevo;
+
+    if (!clave) {
+        return NULL; // La clave debe ser válida
+    }
+    nuevo = nodo_crear(clave, dato, NULL, NULL);
+	if (!nuevo) {
+        return false;
+    }
     arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp, arbol->destruir_dato);
     ++(arbol->cantidad);
 	return true;
@@ -220,8 +204,10 @@ void *abb_borrar(abb_t *arbol, const char *clave)
     abb_nodo_t * borrado;
     void * dato_salida;
 
-    if (!clave) return NULL; // La clave debe ser válida
-	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, &borrado, IZQ);
+    if (!clave) {
+        return NULL; // La clave debe ser válida
+    }
+	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, &borrado);
     if (!borrado) {
         return NULL;
     }
@@ -239,8 +225,12 @@ void *abb_borrar(abb_t *arbol, const char *clave)
 // condiciones (Por ej.: clave no pertenece)
 void *abb_obtener(const abb_t *arbol, const char *clave)
 {
-    if (!clave) return NULL; // La clave debe ser válida
-	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
+	abb_nodo_t * nodo_salida;
+
+    if (!clave) {
+        return NULL; // La clave debe ser válida
+    }
+    nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return NULL;
     else
@@ -252,8 +242,12 @@ void *abb_obtener(const abb_t *arbol, const char *clave)
 // Post: Devuelve true de encontrar el nodo, o false en caso contrario.
 bool abb_pertenece(const abb_t *arbol, const char *clave)
 {
-    if (!clave) return NULL; // La clave debe ser válida
-	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
+	abb_nodo_t * nodo_salida;
+
+    if (!clave) {
+        return NULL; // La clave debe ser válida
+    }
+    nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return false;
     else
