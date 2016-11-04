@@ -198,6 +198,7 @@ static void pruebas_abb_muchos_elementos()
     }
     print_test("los 50 elementos pertenecen al abb", !error_flag);
 
+    /* Elimino 25 elementos del abb */
     for (i = 0; i < 25; i++) {
         free(abb_borrar(abb, s[i]));
     }
