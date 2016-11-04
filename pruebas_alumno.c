@@ -70,7 +70,60 @@ static void pruebas_abb_algunos_elementos()
     print_test("el abb fue destruido", true);
 }
 
-static void pruebas_abb_muchos_elementos() {
+static void pruebas_abb_borrar_hoja()
+{
+    char * s[] = {"Barco", "Avion", "Casa"};
+    int datos[] = {10, 20, 30};
+    abb_t * abb = abb_crear(strcmp, NULL);
+
+    /* Agrego 3 elementos, 2 son hoja */
+    print_test("guardar Barco-10", abb_guardar(abb, s[0], datos+0));
+    print_test("guardar Avion-20", abb_guardar(abb, s[1], datos+1));
+    print_test("guardar Casa-30", abb_guardar(abb, s[2], datos+2));
+
+    /* Borro las dos hojas y verifico que solo haya quedado su padre */
+    print_test("borrar Casa", abb_borrar(abb, s[2]) == datos+2);
+    print_test("borrar Avion", abb_borrar(abb, s[1]) == datos+1);
+    print_test("la cantidad de elementos es 1", abb_cantidad(abb) == 1);
+    print_test("pertenece Barco", abb_pertenece(abb, s[0]));
+    print_test("NO pertenece Avion", !abb_pertenece(abb, s[1]));
+    print_test("NO pertenece Casa", !abb_pertenece(abb, s[2]));
+
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+}
+
+static void pruebas_abb_borrar_un_hijo()
+{
+    char * s[] = {"Casa", "Barco", "Dromedario", "Avion", "Elefante"};
+    int datos[] = {10, 20, 30, 40, 50};
+    abb_t * abb = abb_crear(strcmp, NULL);
+
+    /* Agrego 3 elementos, 2 tienen un solo hijo */
+    print_test("guardar Casa-10", abb_guardar(abb, s[0], datos+0));
+    print_test("guardar Barco-20", abb_guardar(abb, s[1], datos+1));
+    print_test("guardar Dromedario-30", abb_guardar(abb, s[2], datos+2));
+    print_test("guardar Avion-40", abb_guardar(abb, s[3], datos+3));
+    print_test("guardar Elefante-50", abb_guardar(abb, s[4], datos+4));
+
+    /* Borro los dos elementos que tienen un solo hijo */
+    print_test("borrar Barco", abb_borrar(abb, s[1]) == datos+1);
+    print_test("borrar Dromedario", abb_borrar(abb, s[2]) == datos+2);
+
+    /* Verifico que hayan quedado los otros 3 */
+    print_test("la cantidad de elementos es 3", abb_cantidad(abb) == 3);
+    print_test("pertenece Casa", abb_pertenece(abb, s[0]));
+    print_test("pertenece Elefante", abb_pertenece(abb, s[4]));
+    print_test("pertenece Avion", abb_pertenece(abb, s[3]));
+    print_test("NO pertenece Barco", !abb_pertenece(abb, s[1]));
+    print_test("NO pertenece Dromedario", !abb_pertenece(abb, s[2]));
+
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+}
+
+static void pruebas_abb_muchos_elementos()
+{
     int i;
     bool error_flag = false;
     /* 50 strings generadas con el generador de RANDOM.ORG */
@@ -112,7 +165,8 @@ static void pruebas_abb_muchos_elementos() {
 }
 
 /*
-static void pruebas_lista_iterador_externo() {
+static void pruebas_lista_iterador_externo()
+{
     int vec[] = {1, 2, 3};
     lista_t * lista = lista_crear();
     lista_iter_t * iter = lista_iter_crear(lista);
@@ -158,8 +212,11 @@ static void pruebas_lista_iterador_externo() {
 }
 */
 
-void pruebas_abb_alumno() {
+void pruebas_abb_alumno()
+{
     pruebas_abb_vacio();
     pruebas_abb_algunos_elementos();
+    pruebas_abb_borrar_hoja();
+    pruebas_abb_borrar_un_hijo();
     // pruebas_abb_muchos_elementos();
 }
