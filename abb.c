@@ -105,16 +105,16 @@ static abb_nodo_t * buscar_reemplazante(abb_nodo_t * actual, abb_nodo_t * reempl
 }
 
 /* Busca el nodo que debe borrar, lo borra y engancha el reemplazo con los hijos que tenía el nodo borrado */
-static abb_nodo_t * buscar_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t * nodo_salida)
+static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t * nodo_salida)
 {
     if (!actual) {
         nodo_salida = NULL;
         return NULL;
     } else if (cmp(clave, actual->clave) < 0) {
-        actual->izq = buscar_borrar(actual->izq, cmp, clave, nodo_salida);
+        actual->izq = buscar_nodo_borrar(actual->izq, cmp, clave, nodo_salida);
         return actual;
     } else if (cmp(clave, actual->clave) > 0) {
-        actual->der = buscar_borrar(actual->der, cmp, clave, nodo_salida);
+        actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida);
         return actual;
     } else {
         abb_nodo_t * reemplazo;
@@ -178,7 +178,7 @@ void *abb_borrar(abb_t *arbol, const char *clave)
     abb_nodo_t * borrado;
     void * dato_salida;
 
-	arbol->raiz = buscar_borrar(arbol->raiz, arbol->cmp, clave, borrado);
+	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, borrado);
     if (!borrado) {
         return NULL;
     }
