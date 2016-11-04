@@ -66,7 +66,7 @@ static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar
         return NULL;
 	else if (cmp(clave,raiz->clave) == 0)
 		return raiz;
-	else if (cmp(clave,raiz->clave) > 0)
+	else if (cmp(clave,raiz->clave) < 0)
 		return buscar_nodo(raiz->izq, clave, cmp);
 	else
         return buscar_nodo(raiz->der, clave, cmp);
