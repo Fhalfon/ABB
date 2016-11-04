@@ -196,24 +196,23 @@ void *abb_borrar(abb_t *arbol, const char *clave)
 // condiciones (Por ej.: clave no pertenece)
 void *abb_obtener(const abb_t *arbol, const char *clave)
 {
-	if (arbol->raiz == NULL) return NULL;
-	abb_nodo_t* raiz = arbol->raiz;
-	abb_nodo_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
-	if (aux == NULL) return NULL;
-
-	return aux->dato;
+	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
+    if (!nodo_salida)
+        return NULL;
+    else
+        return nodo_salida->dato;
 }
 
 // Averigua si existe un nodo en el ABB con la clave provista.
 // Pre: El ABB fue creado.
 // Post: Devuelve true de encontrar el nodo, o false en caso contrario.
-bool abb_pertenece(const abb_t *arbol, const char *clave){
-
-	if (arbol->raiz == NULL) return NULL;
-	abb_nodo_t* raiz = arbol->raiz;
-	abb_nodo_t* aux = buscar_nodo(raiz,clave,arbol->cmp);
-	if (aux == NULL) return false;
-	return true;
+bool abb_pertenece(const abb_t *arbol, const char *clave)
+{
+	abb_nodo_t * nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
+    if (!nodo_salida)
+        return false;
+    else
+        return true;
 }
 
 // Funcion que permite saber la cantidad de elemtos del arbol.
@@ -228,8 +227,9 @@ size_t abb_cantidad(abb_t *arbol)
 // Post: destruye el arbol.
 void abb_destruir(abb_t *arbol)
 {
-	if (arbol->raiz)
+	if (arbol->raiz) {
         destruir_nodos(arbol->raiz, arbol->destruir_dato);
+    }
 	free(arbol);
 }
 
