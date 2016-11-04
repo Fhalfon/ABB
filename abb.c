@@ -122,8 +122,12 @@ static abb_nodo_t * buscar_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp,
 
         nodo_salida = actual;
         reemplazo_izq = buscar_reemplazante(actual->izq, reemplazo);
-        reemplazo->izq = reemplazo_izq;
-        reemplazo->der = actual->der;
+        if (reemplazo) {
+            /* Si el reemplazo no es NULL (el borrado no es una hoja) */
+            /* Debo "salvar" a sus hijos */
+            reemplazo->izq = reemplazo_izq;
+            reemplazo->der = actual->der;
+        }
         return reemplazo;
     }
 }
