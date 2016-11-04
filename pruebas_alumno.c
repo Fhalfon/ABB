@@ -99,7 +99,7 @@ static void pruebas_abb_borrar_un_hijo()
     int datos[] = {10, 20, 30, 40, 50};
     abb_t * abb = abb_crear(strcmp, NULL);
 
-    /* Agrego 3 elementos, 2 tienen un solo hijo */
+    /* Agrego 5 elementos, 2 tienen un solo hijo */
     print_test("guardar Casa-10", abb_guardar(abb, s[0], datos+0));
     print_test("guardar Barco-20", abb_guardar(abb, s[1], datos+1));
     print_test("guardar Dromedario-30", abb_guardar(abb, s[2], datos+2));
@@ -117,6 +117,50 @@ static void pruebas_abb_borrar_un_hijo()
     print_test("pertenece Avion", abb_pertenece(abb, s[3]));
     print_test("NO pertenece Barco", !abb_pertenece(abb, s[1]));
     print_test("NO pertenece Dromedario", !abb_pertenece(abb, s[2]));
+
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+}
+
+static void pruebas_abb_borrar_dos_hijos()
+{
+    char * s[] = {"Dron", "Bazar", "Fascinante", "Aereo", "Cazador", "Espeluznante", "Grafo"};
+    int datos[] = {10, 20, 30, 40, 50, 60, 70};
+    abb_t * abb = abb_crear(strcmp, NULL);
+
+    /* Agrego 7 elementos, 2 tienen un solo hijo */
+    print_test("guardar Dron-10", abb_guardar(abb, s[0], datos+0));
+    print_test("guardar Bazar-20", abb_guardar(abb, s[1], datos+1));
+    print_test("guardar Fascinante-30", abb_guardar(abb, s[2], datos+2));
+    print_test("guardar Aereo-40", abb_guardar(abb, s[3], datos+3));
+    print_test("guardar Cazador-50", abb_guardar(abb, s[4], datos+4));
+    print_test("guardar Espeluznante-60", abb_guardar(abb, s[5], datos+5));
+    print_test("guardar Grafo-70", abb_guardar(abb, s[6], datos+6));
+
+    /* Borro los dos elementos que tienen dos hijos */
+    print_test("borrar Bazar", abb_borrar(abb, s[1]) == datos+1);
+    print_test("borrar Fascinante", abb_borrar(abb, s[2]) == datos+2);
+
+    /* Verifico que hayan quedado los otros 5 */
+    print_test("la cantidad de elementos es 5", abb_cantidad(abb) == 5);
+    print_test("pertenece Dron", abb_pertenece(abb, s[0]));
+    print_test("pertenece Aereo", abb_pertenece(abb, s[4]));
+    print_test("pertenece Cazador", abb_pertenece(abb, s[3]));
+    print_test("pertenece Espeluznante", abb_pertenece(abb, s[3]));
+    print_test("pertenece Grafo", abb_pertenece(abb, s[3]));
+    print_test("NO pertenece Bazar", !abb_pertenece(abb, s[1]));
+    print_test("NO pertenece Fascinante", !abb_pertenece(abb, s[2]));
+
+    /* Borro la raiz */
+    print_test("borrar Dron", abb_borrar(abb, s[0]) == datos+0);
+
+    /* Verifico que hayan quedado los otros 4 */
+    print_test("la cantidad de elementos es 4", abb_cantidad(abb) == 4);
+    print_test("pertenece Aereo", abb_pertenece(abb, s[4]));
+    print_test("pertenece Cazador", abb_pertenece(abb, s[3]));
+    print_test("pertenece Espeluznante", abb_pertenece(abb, s[3]));
+    print_test("pertenece Grafo", abb_pertenece(abb, s[3]));
+    print_test("NO pertenece Dron", !abb_pertenece(abb, s[0]));
 
     abb_destruir(abb);
     print_test("el abb fue destruido", true);
@@ -154,11 +198,10 @@ static void pruebas_abb_muchos_elementos()
     }
     print_test("los 50 elementos pertenecen al abb", !error_flag);
 
-    /* for (i = 0; i < 25; i++) {
+    for (i = 0; i < 25; i++) {
         free(abb_borrar(abb, s[i]));
     }
     print_test("la cantidad de elementos es 25", abb_cantidad(abb) == 25);
-    */
 
     /* Elimino los 25 elementos restantes al destruir el árbol */
     abb_destruir(abb);
@@ -219,5 +262,6 @@ void pruebas_abb_alumno()
     pruebas_abb_algunos_elementos();
     pruebas_abb_borrar_hoja();
     pruebas_abb_borrar_un_hijo();
+    pruebas_abb_borrar_dos_hijos();
     pruebas_abb_muchos_elementos();
 }
