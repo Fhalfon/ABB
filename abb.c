@@ -100,38 +100,36 @@ static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_com
     }
 }
 
-/* Busca el nodo que va a reemplazar al nodo borrado subarbol izq*/
-static abb_nodo_t * buscar_reemplazante_izq(abb_nodo_t * actual, abb_nodo_t ** reemplazo)
+/* Busca el nodo con la mayor clave en el subárbol dado, lo devuelve a través de maximo */
+static abb_nodo_t * buscar_maximo(abb_nodo_t * actual, abb_nodo_t ** maximo)
 {
     if (!actual) {
-        *reemplazo = NULL;
+        *maximo = NULL;
         return NULL;
     } else if (actual->der) {
-        /* no estoy en el máximo del subárbol izquierdo */
-        actual->der = buscar_reemplazante_izq(actual->der, reemplazo);
+        /* no estoy en el máximo todavía */
+        actual->der = buscar_maximo(actual->der, maximo);
         return actual;
     } else {
-        /* actual->der == NULL, actual es el máximo del subárbol izquierdo */
-        /* actual es el nodo reemplazo del borrado */
-        *reemplazo = actual;
+        /* actual->der == NULL, actual es el máximo */
+        *maximo = actual;
         return actual->izq;
     }
 }
 
-/* Busca el nodo que va a reemplazar al nodo borrado subarbol der */
-static abb_nodo_t * buscar_reemplazante_der(abb_nodo_t * actual, abb_nodo_t ** reemplazo)
+/* Busca el nodo con la menor clave en el subárbol dado, lo devuelve a través de minimo */
+static abb_nodo_t * buscar_minimo(abb_nodo_t * actual, abb_nodo_t ** minimo)
 {
     if (!actual) {
-        *reemplazo = NULL;
+        *minimo = NULL;
         return NULL;
     } else if (actual->izq) {
-        /* no estoy en el máximo del subárbol derecho */
-        actual->izq = buscar_reemplazante_der(actual->der, reemplazo);
+        /* no estoy en el mínimo todavía */
+        actual->izq = buscar_minimo(actual->izq, minimo);
         return actual;
     } else {
-        /* actual->izq == NULL, actual es el máximo del subárbol derecho */
-        /* actual es el nodo reemplazo del borrado */
-        *reemplazo = actual;
+        /* actual->izq == NULL, actual es el mínimo */
+        *minimo = actual;
         return actual->der;
     }
 }
@@ -149,25 +147,27 @@ static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t
         actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida, DER);
         return actual;
     } else {
+        /* clave == actual->clave, actual es el nodo a borrar */
         abb_nodo_t * reemplazo;
         abb_nodo_t * reemplazo_hijo;
 
         *nodo_salida = actual;
         if (dir_anterior == IZQ) {
-            reemplazo_hijo = buscar_reemplazante_izq(actual->izq, &reemplazo);
+            reemplazo_hijo = buscar_maximo(actual->izq, &reemplazo);
         } else {
-            reemplazo_hijo = buscar_reemplazante_der(actual->der, &reemplazo);
+            reemplazo_hijo = buscar_minimo(actual->der, &reemplazo);
         }
-        if (reemplazo) {
-            /* Si el reemplazo no es NULL (el borrado no es una hoja) */
-            /* Debo "salvar" a sus hijos */
-            if (dir_anterior == IZQ) {
-                reemplazo->izq = reemplazo_hijo;
-                reemplazo->der = actual->der;
-            } else {
-                reemplazo->izq = actual->izq;
-                reemplazo->der = reemplazo_hijo;
-            }
+        if (!reemplazo) {
+            return NULL;
+        }
+        /* Si el reemplazo no es NULL (el borrado no es una hoja) */
+        /* Debo "salvar" a sus hijos */
+        if (dir_anterior == IZQ) {
+            reemplazo->izq = reemplazo_hijo;
+            reemplazo->der = actual->der;
+        } else {
+            reemplazo->izq = actual->izq;
+            reemplazo->der = reemplazo_hijo;
         }
         return reemplazo;
     }
