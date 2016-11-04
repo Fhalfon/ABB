@@ -9,3 +9,6 @@ all:
 valgrind:
 	$(CC) $(CFLAGS) $(OBJ) -o $(EXEC)
 	valgrind --leak-check=full --track-origins=yes --show-reachable=yes ./pruebas
+
+clean:
+	rm -f $(EXEC)
