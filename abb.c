@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include "abb.h"
+#define IZQ 0
+#define DER 1
 
 /* *****************************************************************
  *            Definición de las estructuras de datos               *
@@ -74,28 +76,39 @@ static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar
 }
 
 /* Inserta un nodo */
-static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_comparar_clave_t cmp)
+static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 {
     if (!nodo) {
         return nuevo;
-    } else if (cmp(nuevo->clave, nodo->clave) >= 0) {   // Las claves iguales se ubican hacia la derecha
-        nodo->der = insertar_nodo(nodo->der, nuevo, cmp);
+    } else if (cmp(nuevo->clave, nodo->clave) > 0) {
+        nodo->der = insertar_nodo(nodo->der, nuevo, cmp, destruir_dato);
+        return nodo;
+    } else if (cmp(nuevo->clave, nodo->clave) < 9) {
+        nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp, destruir_dato);
         return nodo;
     } else {
-        nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp);
+        /* La clave pertenece al ABB, reemplazo el dato */
+        void * aux = nodo->dato;
+        nodo->dato = nuevo->dato;
+        if (destruir_dato) {
+            destruir_dato(aux);
+        }
+        /* No necesito las otras partes del nodo creado, las libero */
+        free(nuevo->clave);
+        free(nuevo);
         return nodo;
     }
 }
 
-/* Busca el nodo que va a reemplazar al nodo borrado */
-static abb_nodo_t * buscar_reemplazante(abb_nodo_t * actual, abb_nodo_t ** reemplazo)
+/* Busca el nodo que va a reemplazar al nodo borrado subarbol izq*/
+static abb_nodo_t * buscar_reemplazante_izq(abb_nodo_t * actual, abb_nodo_t ** reemplazo)
 {
     if (!actual) {
         *reemplazo = NULL;
         return NULL;
     } else if (actual->der) {
         /* no estoy en el máximo del subárbol izquierdo */
-        actual->der = buscar_reemplazante(actual->der, reemplazo);
+        actual->der = buscar_reemplazante_izq(actual->der, reemplazo);
         return actual;
     } else {
         /* actual->der == NULL, actual es el máximo del subárbol izquierdo */
@@ -105,29 +118,56 @@ static abb_nodo_t * buscar_reemplazante(abb_nodo_t * actual, abb_nodo_t ** reemp
     }
 }
 
+/* Busca el nodo que va a reemplazar al nodo borrado subarbol der */
+static abb_nodo_t * buscar_reemplazante_der(abb_nodo_t * actual, abb_nodo_t ** reemplazo)
+{
+    if (!actual) {
+        *reemplazo = NULL;
+        return NULL;
+    } else if (actual->izq) {
+        /* no estoy en el máximo del subárbol derecho */
+        actual->izq = buscar_reemplazante_der(actual->der, reemplazo);
+        return actual;
+    } else {
+        /* actual->izq == NULL, actual es el máximo del subárbol derecho */
+        /* actual es el nodo reemplazo del borrado */
+        *reemplazo = actual;
+        return actual->der;
+    }
+}
+
 /* Busca el nodo que debe borrar, lo borra y engancha el reemplazo con los hijos que tenía el nodo borrado */
-static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t ** nodo_salida)
+static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t ** nodo_salida, bool dir_anterior)
 {
     if (!actual) {
         *nodo_salida = NULL;
         return NULL;
     } else if (cmp(clave, actual->clave) < 0) {
-        actual->izq = buscar_nodo_borrar(actual->izq, cmp, clave, nodo_salida);
+        actual->izq = buscar_nodo_borrar(actual->izq, cmp, clave, nodo_salida, IZQ);
         return actual;
     } else if (cmp(clave, actual->clave) > 0) {
-        actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida);
+        actual->der = buscar_nodo_borrar(actual->der, cmp, clave, nodo_salida, DER);
         return actual;
     } else {
         abb_nodo_t * reemplazo;
-        abb_nodo_t * reemplazo_izq;
+        abb_nodo_t * reemplazo_hijo;
 
         *nodo_salida = actual;
-        reemplazo_izq = buscar_reemplazante(actual->izq, &reemplazo);
+        if (dir_anterior == IZQ) {
+            reemplazo_hijo = buscar_reemplazante_izq(actual->izq, &reemplazo);
+        } else {
+            reemplazo_hijo = buscar_reemplazante_der(actual->der, &reemplazo);
+        }
         if (reemplazo) {
             /* Si el reemplazo no es NULL (el borrado no es una hoja) */
             /* Debo "salvar" a sus hijos */
-            reemplazo->izq = reemplazo_izq;
-            reemplazo->der = actual->der;
+            if (dir_anterior == IZQ) {
+                reemplazo->izq = reemplazo_hijo;
+                reemplazo->der = actual->der;
+            } else {
+                reemplazo->izq = actual->izq;
+                reemplazo->der = reemplazo_hijo;
+            }
         }
         return reemplazo;
     }
@@ -166,7 +206,7 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
     if (!clave) return NULL; // La clave debe ser válida
 	abb_nodo_t* nuevo = nodo_crear(clave, dato, NULL, NULL);
 	if (!nuevo) return false;
-    arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp);
+    arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp, arbol->destruir_dato);
     ++(arbol->cantidad);
 	return true;
 }
@@ -181,7 +221,7 @@ void *abb_borrar(abb_t *arbol, const char *clave)
     void * dato_salida;
 
     if (!clave) return NULL; // La clave debe ser válida
-	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, &borrado);
+	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, &borrado, IZQ);
     if (!borrado) {
         return NULL;
     }

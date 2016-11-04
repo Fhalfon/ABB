@@ -154,10 +154,10 @@ static void pruebas_abb_muchos_elementos()
     }
     print_test("los 50 elementos pertenecen al abb", !error_flag);
 
-    for (i = 0; i < 15; i++) {
+    for (i = 0; i < 25; i++) {
         free(abb_borrar(abb, s[i]));
     }
-    print_test("la cantidad de elementos es 35", abb_cantidad(abb) == 35);
+    print_test("la cantidad de elementos es 25", abb_cantidad(abb) == 25);
 
     /* Elimino los 25 elementos restantes al destruir el árbol */
     abb_destruir(abb);
