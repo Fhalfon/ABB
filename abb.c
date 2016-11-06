@@ -300,7 +300,7 @@ static bool nodo_abb_in_order(abb_nodo_t *nodo_abb, bool visitar(const char *, v
 // resultado de la funcion vistar.
 void abb_in_order(abb_t *arbol,bool visitar(const char *, void *, void *), void *extra)
 {
-	if (!visitar){
+	if (!visitar || !arbol){
 	    return;
 	}
 	if (arbol->raiz){
