@@ -5,6 +5,8 @@
 #include "abb.h"
 #include "testing.h"
 
+
+
 /* Pruebas para un abb vacio */
 static void pruebas_abb_vacio()
 {
@@ -136,7 +138,6 @@ static void pruebas_abb_borrar_dos_hijos()
     print_test("guardar Cazador-50", abb_guardar(abb, s[4], datos+4));
     print_test("guardar Espeluznante-60", abb_guardar(abb, s[5], datos+5));
     print_test("guardar Grafo-70", abb_guardar(abb, s[6], datos+6));
-
     /* Borro los dos elementos que tienen dos hijos */
     print_test("borrar Bazar", abb_borrar(abb, s[1]) == datos+1);
     print_test("borrar Fascinante", abb_borrar(abb, s[2]) == datos+2);
@@ -161,7 +162,6 @@ static void pruebas_abb_borrar_dos_hijos()
     print_test("pertenece Espeluznante", abb_pertenece(abb, s[3]));
     print_test("pertenece Grafo", abb_pertenece(abb, s[3]));
     print_test("NO pertenece Dron", !abb_pertenece(abb, s[0]));
-
     abb_destruir(abb);
     print_test("el abb fue destruido", true);
 }
@@ -197,7 +197,6 @@ static void pruebas_abb_muchos_elementos()
         }
     }
     print_test("los 50 elementos pertenecen al abb", !error_flag);
-
     /* Elimino 25 elementos del abb */
     for (i = 0; i < 25; i++) {
         free(abb_borrar(abb, s[i]));
@@ -257,6 +256,45 @@ static void pruebas_lista_iterador_externo()
 }
 */
 
+
+/* pruebas para el iter interno del ABB */
+static bool imprimir_clave(const char *clave, void *dato, void *extra)
+{
+	if (clave){
+		printf("%s\n",clave);
+	    return true;
+	}
+	return false;
+}
+
+static void pruebas_abb_iter_int()
+{   char * s[] = {"Dron", "Bazar", "Fascinante", "Aereo", "Cazador", "Espeluznante", 
+                  "Grafo","Casa", "Barco", "Dromedario", "Avion", "Elefante"};
+    int datos[] = {10,15,20,25,30,35,40,45,50,55,60,65};
+    printf("INICIO DE PRUEBAS CON ITERADOR INTERNO\n");
+    abb_t * abb = abb_crear(strcmp, NULL);
+
+    /* Agrego 7 elementos, 2 tienen un solo hijo */
+    print_test("guardar Dron-10", abb_guardar(abb, s[0], datos+0));
+    print_test("guardar Bazar-15", abb_guardar(abb, s[1], datos+1));
+    print_test("guardar Fascinante-20", abb_guardar(abb, s[2], datos+2));
+    print_test("guardar Aereo-25", abb_guardar(abb, s[3], datos+3));
+    print_test("guardar Cazador-30", abb_guardar(abb, s[4], datos+4));
+    print_test("guardar Espeluznante-35", abb_guardar(abb, s[5], datos+5));
+    print_test("guardar Grafo-40", abb_guardar(abb, s[6], datos+6));
+    print_test("guardar Casa-45", abb_guardar(abb, s[7], datos+7));
+    print_test("guardar Barco-50", abb_guardar(abb, s[8], datos+8));
+    print_test("guardar Dromedario-55", abb_guardar(abb, s[9], datos+9));
+    print_test("guardar Avion-60", abb_guardar(abb, s[10], datos+11));
+    print_test("guardar Elefante-65", abb_guardar(abb, s[11], datos+12));
+    /* Recorro los nodos en inorden y se imprime su dato */
+    printf("RECORRIDO INORDER\n");
+    abb_in_order(abb,imprimir_clave,NULL);
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+}
+
+ 
 void pruebas_abb_alumno()
 {
     pruebas_abb_vacio();
@@ -265,4 +303,6 @@ void pruebas_abb_alumno()
     pruebas_abb_borrar_un_hijo();
     pruebas_abb_borrar_dos_hijos();
     pruebas_abb_muchos_elementos();
+    pruebas_abb_iter_int();
 }
+
