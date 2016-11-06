@@ -81,7 +81,7 @@ static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_com
     } else if (cmp(nuevo->clave, nodo->clave) > 0) {
         nodo->der = insertar_nodo(nodo->der, nuevo, cmp, destruir_dato);
         return nodo;
-    } else if (cmp(nuevo->clave, nodo->clave) < 9) {
+    } else if (cmp(nuevo->clave, nodo->clave) < 0) {
         nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp, destruir_dato);
         return nodo;
     } else {
@@ -275,6 +275,40 @@ void abb_destruir(abb_t *arbol)
 /* *****************************************************************
  *                 Primitivas del iterador interno                 *
  * *****************************************************************/
+static bool nodo_abb_in_order(abb_nodo_t *nodo_abb, bool visitar(const char *, void *, void *), void *extra)
+{
+    // Si el hijo izq no es NULL lo visita.
+	// Si la visita del hijo izq es falsa termina.
+	if (nodo_abb->izq){
+		nodo_abb_in_order(nodo_abb->izq,visitar,extra);
+    }
+	// Visita el nodo actual.
+	// Si la visita es falsa termina.
+	if (!visitar(nodo_abb->clave,nodo_abb->dato,extra)){ 
+		return false;
+    }
+	// Si el hijo der no es NULL lo visita.
+	// Si la visita del hijo der es falsa termina.
+	if (nodo_abb->der){
+		nodo_abb_in_order(nodo_abb->der,visitar,extra);
+	}
+	return true;
+}
+
+// Pre: el arbol existe y se debe mandar una funcion visitar.
+// Post: recorre cada uno de los elementos del arbol, segun el
+// resultado de la funcion vistar.
+void abb_in_order(abb_t *arbol,bool visitar(const char *, void *, void *), void *extra)
+{
+	if (!visitar){
+	    return;
+	}
+	if (arbol->raiz){
+		nodo_abb_in_order(arbol->raiz,visitar,extra);
+	}	
+}
+ 
 /* *****************************************************************
  *                 Primitivas del iterador externo                 *
  * *****************************************************************/
+
