@@ -24,9 +24,10 @@ typedef struct abb{
 	size_t cantidad;
 } abb_t;
 
-typedef struct abb_iter{
+typedef struct abb_iter {
 	pila_t *pila_iter;
-}abb_iter_t;
+} abb_iter_t;
+
 /* *****************************************************************
  *                    Funciones auxiliares                         *
  * *****************************************************************/
@@ -279,6 +280,7 @@ void abb_destruir(abb_t *arbol)
 /* *****************************************************************
  *                 Primitivas del iterador interno                 *
  * *****************************************************************/
+
 static bool nodo_abb_in_order(abb_nodo_t *nodo_abb, bool visitar(const char *, void *, void *), void *extra)
 {
     // Si el hijo izq no es NULL lo visita.
@@ -288,7 +290,7 @@ static bool nodo_abb_in_order(abb_nodo_t *nodo_abb, bool visitar(const char *, v
     }
 	// Visita el nodo actual.
 	// Si la visita es falsa termina.
-	if (!visitar(nodo_abb->clave,nodo_abb->dato,extra)){ 
+	if (!visitar(nodo_abb->clave,nodo_abb->dato,extra)){
 		return false;
     }
 	// Si el hijo der no es NULL lo visita.
@@ -302,25 +304,23 @@ static bool nodo_abb_in_order(abb_nodo_t *nodo_abb, bool visitar(const char *, v
 // Pre: el arbol existe y se debe mandar una funcion visitar.
 // Post: recorre cada uno de los elementos del arbol, segun el
 // resultado de la funcion vistar.
-void abb_in_order(abb_t *arbol,bool visitar(const char *, void *, void *), void *extra)
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra)
 {
-	if (!visitar || !arbol){
-	    return;
-	}
-	if (arbol->raiz){
+	if (arbol->raiz) {
 		nodo_abb_in_order(arbol->raiz,visitar,extra);
-	}	
+	}
 }
- 
+
 /* *****************************************************************
  *                 Primitivas del iterador externo                 *
  * *****************************************************************/
+
 // Avanza lo mas hacia la izquierda posible del padre.
 // Pre: la pila del iterador debe existir.
 // Post: deja en el tope de la pila el elemento mas al a izq.
 static pila_t* avanzar_izq(pila_t* pila_iter,abb_nodo_t* actual)
 {
-	if (actual){
+	if (actual) {
 		pila_apilar(pila_iter,actual);
 		return avanzar_izq(pila_iter,actual->izq);
 	}
@@ -334,13 +334,12 @@ static pila_t* avanzar_izq(pila_t* pila_iter,abb_nodo_t* actual)
 // que el arbol este vacio, el actual apunta a NULL.
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 {
-
 	abb_iter_t *iter = malloc(sizeof(abb_iter_t));
-	if (!iter){
+	if (!iter) {
 	    return NULL;
 	}
 	pila_t *pila = pila_crear();
-	if (!pila){
+	if (!pila) {
 		free(iter);
 		return NULL;
 	}
@@ -349,7 +348,6 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 	if (arbol->raiz) {
 	    iter->pila_iter = avanzar_izq(iter->pila_iter,arbol->raiz);
     }
-
 	return iter;
 }
 
@@ -367,7 +365,7 @@ bool abb_iter_in_avanzar(abb_iter_t *iter)
 	if (desapilado->der){
 		pila_apilar(iter->pila_iter,desapilado->der);
 		abb_nodo_t* aux = desapilado->der;
-		if (aux->izq){ 
+		if (aux->izq){
 			iter->pila_iter = avanzar_izq(iter->pila_iter,aux->izq);
 		}
 	}
