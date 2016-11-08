@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "abb.h"
+#include "pila.h"
 
 /* *****************************************************************
  *            Definición de las estructuras de datos               *
@@ -23,6 +24,9 @@ typedef struct abb{
 	size_t cantidad;
 } abb_t;
 
+typedef struct abb_iter{
+	pila_t *pila_iter;
+}abb_iter_t;
 /* *****************************************************************
  *                    Funciones auxiliares                         *
  * *****************************************************************/
@@ -311,4 +315,95 @@ void abb_in_order(abb_t *arbol,bool visitar(const char *, void *, void *), void 
 /* *****************************************************************
  *                 Primitivas del iterador externo                 *
  * *****************************************************************/
+// Avanza lo mas hacia la izquierda posible del padre.
+// Pre: la pila del iterador debe existir.
+// Post: deja en el tope de la pila el elemento mas al a izq.
+static pila_t* avanzar_izq(pila_t* pila_iter,abb_nodo_t* actual)
+{
+	if (actual){
+		pila_apilar(pila_iter,actual);
+		return avanzar_izq(pila_iter,actual->izq);
+	}
+	return pila_iter;
+}
 
+// Crea el iterador del arbol y lo deja posicionado en el
+// nodo actual.
+// Pre: el arbol debe existir.
+// Post: devuelte el iterador en la posicion actual. En caso de
+// que el arbol este vacio, el actual apunta a NULL.
+abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
+{
+
+	abb_iter_t *iter = malloc(sizeof(abb_iter_t));
+	if (!iter){
+	    return NULL;
+	}
+	pila_t *pila = pila_crear();
+	if (!pila){
+		free(iter);
+		return NULL;
+	}
+	iter->pila_iter = pila;
+
+	if (arbol->raiz) {
+	    iter->pila_iter = avanzar_izq(iter->pila_iter,arbol->raiz);
+    }
+
+	return iter;
+}
+
+// Permite avanzar en el iterador.
+// Pre: el iterador debe existir.
+// Post: devuelve verdadero en caso de que pueda avanzar
+// y falso en caso de que no.
+bool abb_iter_in_avanzar(abb_iter_t *iter)
+{
+	if (abb_iter_in_al_final(iter))	{
+		return false;
+	}
+	abb_nodo_t *desapilado = pila_desapilar(iter->pila_iter);
+
+	if (desapilado->der){
+		pila_apilar(iter->pila_iter,desapilado->der);
+		abb_nodo_t* aux = desapilado->der;
+		if (aux->izq){ 
+			iter->pila_iter = avanzar_izq(iter->pila_iter,aux->izq);
+		}
+	}
+	return true;
+}
+
+// Devuelve la clave actual del iterador.
+// Pre: iterador debe existir.
+// Post: devuelve la clave almacenada en la posicion actual
+// del iterador. En caso de que este al final, devuelte NULL.
+const char *abb_iter_in_ver_actual(const abb_iter_t *iter)
+{
+    if (abb_iter_in_al_final(iter)){
+		return NULL;
+	}
+	abb_nodo_t *tope = pila_ver_tope(iter->pila_iter);
+	return tope->clave;
+
+}
+
+// Permite saber si el iterador se encuentra al final.
+// Pre: el iterador debe existir.
+// Post: devuelve verdadero en caso de que este al final,
+// falso en caso de que no este al final.
+bool abb_iter_in_al_final(const abb_iter_t *iter)
+{
+	if (pila_esta_vacia(iter->pila_iter)) {
+	    return true;
+	}
+	return false;
+}
+
+// Destruye el iterador.
+// Pre: el iterador debe existir.
+void abb_iter_in_destruir(abb_iter_t* iter)
+{
+	pila_destruir(iter->pila_iter);
+	free(iter);
+}
