@@ -5,6 +5,9 @@
 #include "abb.h"
 #include "testing.h"
 
+
+
+
 /* Pruebas para un abb vacio */
 static void pruebas_abb_vacio()
 {
@@ -136,7 +139,6 @@ static void pruebas_abb_borrar_dos_hijos()
     print_test("guardar Cazador-50", abb_guardar(abb, s[4], datos+4));
     print_test("guardar Espeluznante-60", abb_guardar(abb, s[5], datos+5));
     print_test("guardar Grafo-70", abb_guardar(abb, s[6], datos+6));
-
     /* Borro los dos elementos que tienen dos hijos */
     print_test("borrar Bazar", abb_borrar(abb, s[1]) == datos+1);
     print_test("borrar Fascinante", abb_borrar(abb, s[2]) == datos+2);
@@ -161,7 +163,6 @@ static void pruebas_abb_borrar_dos_hijos()
     print_test("pertenece Espeluznante", abb_pertenece(abb, s[3]));
     print_test("pertenece Grafo", abb_pertenece(abb, s[3]));
     print_test("NO pertenece Dron", !abb_pertenece(abb, s[0]));
-
     abb_destruir(abb);
     print_test("el abb fue destruido", true);
 }
@@ -197,7 +198,6 @@ static void pruebas_abb_muchos_elementos()
         }
     }
     print_test("los 50 elementos pertenecen al abb", !error_flag);
-
     /* Elimino 25 elementos del abb */
     for (i = 0; i < 25; i++) {
         free(abb_borrar(abb, s[i]));
@@ -209,54 +209,101 @@ static void pruebas_abb_muchos_elementos()
     print_test("el abb fue destruido", true);
 }
 
-/*
-static void pruebas_lista_iterador_externo()
+
+static void pruebas_abb_iter_ext()
 {
-    int vec[] = {1, 2, 3};
-    lista_t * lista = lista_crear();
-    lista_iter_t * iter = lista_iter_crear(lista);
-    printf("INICIO DE PRUEBAS CON ITERADOR\n");
-
-    print_test("crear lista", lista != NULL);
-    print_test("crear iterador", iter != NULL);
-    print_test("iter esta al final", lista_iter_al_final(iter));
-    print_test("iter avanzar devuelve false", !lista_iter_avanzar(iter));
-
-    print_test("insertar 1", lista_iter_insertar(iter, vec));
-    print_test("1 esta en la posicion actual", lista_iter_ver_actual(iter) == vec);
-    print_test("borrar 1", lista_iter_borrar(iter) == vec);
-    print_test("iter esta al final", lista_iter_al_final(iter));
-    print_test("insertar 1", lista_iter_insertar(iter, vec));
-    print_test("1 esta en la posicion actual", lista_iter_ver_actual(iter) == vec);
-    print_test("insertar 2", lista_iter_insertar(iter, vec+1));
-    print_test("2 esta en la posicion actual", lista_iter_ver_actual(iter) == vec+1);
-    print_test("avanzar", lista_iter_avanzar(iter));
-    print_test("1 esta en la posicion actual", lista_iter_ver_actual(iter) == vec);
-    print_test("avanzar", lista_iter_avanzar(iter));
-    print_test("avanzar devuelve false", !lista_iter_avanzar(iter));
-    print_test("insertar 3", lista_iter_insertar(iter, vec+2));
-    print_test("borrar 3", lista_iter_borrar(iter) == vec+2);
-    print_test("iter esta al final", lista_iter_al_final(iter));
-    print_test("el iterador fue destruido", true);
-    lista_iter_destruir(iter);
-
-    iter = lista_iter_crear(lista);
-    print_test("crear iterador", iter != NULL);
-    print_test("borrar 2", lista_iter_borrar(iter) == vec+1);
-    print_test("borrar 1", lista_iter_borrar(iter) == vec);
-    print_test("borrar devuelve NULL", lista_iter_borrar(iter) == NULL);
-    print_test("insertar NULL", lista_iter_insertar(iter, NULL));
-    print_test("ver actual da NULL", lista_iter_ver_actual(iter) == NULL);
-    print_test("iter no esta al final", !lista_iter_al_final(iter));
-    print_test("borrar NULL", lista_iter_borrar(iter) == NULL);
-    print_test("iter esta al final", lista_iter_al_final(iter));
-    print_test("el largo es cero", lista_largo(lista) == 0);
-    print_test("el iterador y la lista fueron destruidos", true);
-    lista_iter_destruir(iter);
-    lista_destruir(lista, NULL);
+	abb_t* abb1 = abb_crear(strcmp, NULL);
+	/* creo el iterador con un arbol vacio */
+	printf("INICIO DE PRUEBAS CON LA CREACION DE UN ITER CON UN ARBOL VACIO\n");
+	abb_iter_t* iter1 = abb_iter_in_crear(abb1);
+	print_test("El iterador1 fue creado", iter1);
+	print_test("Avanzar con el iterador es false", !abb_iter_in_avanzar(iter1));
+	print_test("Ver actual con el iterador es NULL", !abb_iter_in_ver_actual(iter1));
+	print_test("El iterador esta al final", abb_iter_in_al_final(iter1));
+	abb_iter_in_destruir(iter1);
+	
+	
+	printf("INICIO DE PRUEBAS CON LA CREACION DE UN ITER CON UN ARBOL CON VARIOS ELEMENTOS\n");
+	char* claves[]= {"d","a","f","b","i","h","g","e","c"};
+	int datos[]={1,2,3,4,5,6,7,8,9};
+	/* Agrego 8 elementos*/
+    print_test("guardar d-1", abb_guardar(abb1, claves[0], datos+0));
+    print_test("guardar a-2", abb_guardar(abb1, claves[1], datos+1));
+    print_test("guardar f-3", abb_guardar(abb1, claves[2], datos+2));
+    print_test("guardar b-4", abb_guardar(abb1, claves[3], datos+3));
+    print_test("guardar i-5", abb_guardar(abb1, claves[4], datos+4));
+    print_test("guardar h-6", abb_guardar(abb1, claves[5], datos+5));
+    print_test("guardar g-7", abb_guardar(abb1, claves[6], datos+6));
+    print_test("guardar e-8", abb_guardar(abb1, claves[7], datos+7));
+    print_test("guardar c-9", abb_guardar(abb1, claves[8], datos+8));
+    abb_iter_t* iter2 = abb_iter_in_crear(abb1);
+	print_test("El iterador2 fue creado", iter2 != NULL);
+	print_test("El iterador no esta al final",!abb_iter_in_al_final(iter2));
+	printf("Pirmer pos:%s\n",abb_iter_in_ver_actual(iter2));
+	printf("Pirmer pos:%s\n",claves[1]);
+	print_test("Primer clave es 'a'", strcmp(abb_iter_in_ver_actual(iter2),claves[1])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Segunda clave es 'b'", strcmp(abb_iter_in_ver_actual(iter2),claves[3])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Tercera clave es 'c'", strcmp(abb_iter_in_ver_actual(iter2),claves[8])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Cuarta clave es 'd'", strcmp(abb_iter_in_ver_actual(iter2),claves[0])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("El iterador no esta al final",!abb_iter_in_al_final(iter2));
+	print_test("Quinta clave es 'e'", strcmp(abb_iter_in_ver_actual(iter2),claves[7])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Sexta clave es 'f'", strcmp(abb_iter_in_ver_actual(iter2),claves[2])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Septima clave es 'g'", strcmp(abb_iter_in_ver_actual(iter2),claves[6])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Octava clave es 'h'", strcmp(abb_iter_in_ver_actual(iter2),claves[5])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("Octava clave es 'i'", strcmp(abb_iter_in_ver_actual(iter2),claves[4])==0);
+	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter2));
+	print_test("El iterador esta al final",abb_iter_in_al_final(iter2));
+	abb_iter_in_destruir(iter2);
+    abb_destruir(abb1);   
 }
-*/
 
+
+
+/* pruebas para el iter interno del ABB */
+static bool imprimir_clave(const char *clave, void *dato, void *extra)
+{
+	if (clave){
+		printf("%s\n",clave);
+	    return true;
+	}
+	return false;
+}
+
+static void pruebas_abb_iter_int()
+{   char * s[] = {"Dron", "Bazar", "Fascinante", "Aereo", "Cazador", "Espeluznante", 
+                  "Grafo","Casa", "Barco", "Dromedario", "Avion", "Elefante"};
+    int datos[] = {10,15,20,25,30,35,40,45,50,55,60,65};
+    printf("INICIO DE PRUEBAS CON ITERADOR INTERNO\n");
+    abb_t * abb = abb_crear(strcmp, NULL);
+    /* Agrego 12 elementos */
+    print_test("guardar Dron-10", abb_guardar(abb, s[0], datos+0));
+    print_test("guardar Bazar-15", abb_guardar(abb, s[1], datos+1));
+    print_test("guardar Fascinante-20", abb_guardar(abb, s[2], datos+2));
+    print_test("guardar Aereo-25", abb_guardar(abb, s[3], datos+3));
+    print_test("guardar Cazador-30", abb_guardar(abb, s[4], datos+4));
+    print_test("guardar Espeluznante-35", abb_guardar(abb, s[5], datos+5));
+    print_test("guardar Grafo-40", abb_guardar(abb, s[6], datos+6));
+    print_test("guardar Casa-45", abb_guardar(abb, s[7], datos+7));
+    print_test("guardar Barco-50", abb_guardar(abb, s[8], datos+8));
+    print_test("guardar Dromedario-55", abb_guardar(abb, s[9], datos+9));
+    print_test("guardar Avion-60", abb_guardar(abb, s[10], datos+11));
+    print_test("guardar Elefante-65", abb_guardar(abb, s[11], datos+12));
+    /* Recorro los nodos en inorden y se imprime su dato */
+    printf("RECORRIDO INORDER\n");
+    abb_in_order(abb,imprimir_clave,NULL);
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+}
+
+ 
 void pruebas_abb_alumno()
 {
     pruebas_abb_vacio();
@@ -265,4 +312,6 @@ void pruebas_abb_alumno()
     pruebas_abb_borrar_un_hijo();
     pruebas_abb_borrar_dos_hijos();
     pruebas_abb_muchos_elementos();
+    pruebas_abb_iter_ext();
+    pruebas_abb_iter_int();
 }
