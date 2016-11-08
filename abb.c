@@ -281,16 +281,17 @@ void abb_destruir(abb_t *arbol)
  *                 Primitivas del iterador interno                 *
  * *****************************************************************/
 
+/* Recorre los nodos en in-order recursivamente, comunicando con el valor de retorno en cada llamado si debe seguir la recursión */
 static bool abb_nodo_in_order(abb_nodo_t *nodo, bool visitar(const char *, void *, void *), void *extra)
 {
     if (!nodo)
-        return true;
+        return true; // Recorrió todo, porque no hay nada para recorrer
     else if (!abb_nodo_in_order(nodo->izq,visitar,extra))
-        return false;
+        return false; // Si el subárbol izquierdo recibió false, devuelve false
 	else if (!visitar(nodo->clave,nodo->dato,extra))
-        return false; // Visita el nodo actual. Si la visita es falsa termina.
+        return false; // Visita el nodo actual, comunica a las llamadas previas que deben terminar
     else if (!abb_nodo_in_order(nodo->der,visitar,extra))
-        return false;
+        return false; // Si el subárbol derecho recibió false, devuelve false
     else
         return true;
 }
