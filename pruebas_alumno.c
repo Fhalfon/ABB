@@ -239,15 +239,18 @@ static void pruebas_abb_iter_externo_vacio()
 	print_test("ver actual con el iterador es NULL", !abb_iter_in_ver_actual(iter));
 	print_test("el iterador al final", abb_iter_in_al_final(iter));
 
-    /* Destruyo el iterador */
+    /* Destruyo el abb y el iterador */
 	abb_iter_in_destruir(iter);
+    abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+    print_test("el iterador fue destruido", true);
 }
 
 static void pruebas_abb_iter_externo_algunos_elementos()
 {
 	char * claves[] = {"d","a","f","b","i","h","g","e","c"};
 	int datos[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    abb_t * abb = abb_crear(NULL, NULL);
+    abb_t * abb = abb_crear(strcmp, NULL);
     abb_iter_t * iter;
 
 	printf("INICIO DE PRUEBAS ITERADOR DE UN ABB CON VARIOS ELEMENTOS\n");
@@ -270,7 +273,7 @@ static void pruebas_abb_iter_externo_algunos_elementos()
     /* Inicio de pruebas con el iterador */
 	print_test("El iterador fue creado", iter != NULL);
 	print_test("El iterador no esta al final",!abb_iter_in_al_final(iter));
-    print_test("la clave es \"a\"", strcmp(abb_iter_in_ver_actual(iter), claves[1]));
+    print_test("la clave es 'a'", strcmp(abb_iter_in_ver_actual(iter), claves[1]) == 0);
 	print_test("El iterador no esta al final", !abb_iter_in_al_final(iter));
 
     /* Recorro el abb con el iterador */
@@ -300,6 +303,8 @@ static void pruebas_abb_iter_externo_algunos_elementos()
     /* Destruyo el abb y el iterador */
 	abb_iter_in_destruir(iter);
     abb_destruir(abb);
+    print_test("el abb fue destruido", true);
+    print_test("el iterador fue destruido", true);
 }
 
 /* pruebas para el iter interno del ABB */
