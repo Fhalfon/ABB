@@ -25,7 +25,7 @@ typedef struct abb{
 } abb_t;
 
 typedef struct abb_iter {
-	pila_t *pila_iter;
+	pila_t *pila;
 } abb_iter_t;
 
 /* *****************************************************************
@@ -337,11 +337,11 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 		free(iter);
 		return NULL;
 	}
-	iter->pila_iter = pila;
+	iter->pila = pila;
 
     /* Si el abb no es vacío debe posicionarse en el nodo más a la izquierda de la raíz */
 	if (arbol->raiz) {
-	    avanzar_izq(iter->pila_iter, arbol->raiz);
+	    avanzar_izq(iter->pila, arbol->raiz);
     }
 	return iter;
 }
@@ -355,13 +355,13 @@ bool abb_iter_in_avanzar(abb_iter_t *iter)
 	if (abb_iter_in_al_final(iter))	{
 		return false;
 	}
-	abb_nodo_t *desapilado = pila_desapilar(iter->pila_iter);
+	abb_nodo_t *desapilado = pila_desapilar(iter->pila);
 
 	if (desapilado->der){
-		pila_apilar(iter->pila_iter,desapilado->der);
+		pila_apilar(iter->pila,desapilado->der);
 		abb_nodo_t* aux = desapilado->der;
 		if (aux->izq){
-			avanzar_izq(iter->pila_iter, aux->izq);
+			avanzar_izq(iter->pila, aux->izq);
 		}
 	}
 	return true;
@@ -378,9 +378,8 @@ const char *abb_iter_in_ver_actual(const abb_iter_t *iter)
     if (abb_iter_in_al_final(iter)) {
 		return NULL;
 	}
-	tope = pila_ver_tope(iter->pila_iter);
+	tope = pila_ver_tope(iter->pila);
 	return tope->clave;
-
 }
 
 // Permite saber si el iterador se encuentra al final.
@@ -389,7 +388,7 @@ const char *abb_iter_in_ver_actual(const abb_iter_t *iter)
 // falso en caso de que no este al final.
 bool abb_iter_in_al_final(const abb_iter_t *iter)
 {
-	return pila_esta_vacia(iter->pila_iter);
+	return pila_esta_vacia(iter->pila);
 }
 
 // Destruye el iterador.
@@ -399,6 +398,6 @@ void abb_iter_in_destruir(abb_iter_t* iter)
     if (!iter) {
         return;
     }
-	pila_destruir(iter->pila_iter);
+	pila_destruir(iter->pila);
 	free(iter);
 }
