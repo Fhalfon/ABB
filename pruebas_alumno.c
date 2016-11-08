@@ -253,7 +253,7 @@ static void pruebas_abb_iter_externo_algunos_elementos()
     abb_t * abb = abb_crear(strcmp, NULL);
     abb_iter_t * iter;
 
-	printf("INICIO DE PRUEBAS ITERADOR DE UN ABB CON VARIOS ELEMENTOS\n");
+	printf("INICIO DE PRUEBAS ITERADOR EXTERNO DE UN ABB CON VARIOS ELEMENTOS\n");
     print_test("crear abb", abb != NULL);
 
 	/* Guardo 8 elementos*/
