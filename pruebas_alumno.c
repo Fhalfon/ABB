@@ -10,7 +10,7 @@ static void pruebas_abb_vacio()
 {
     /* Declaro las variables a utilizar*/
     char * s = "Hola mundo";
-    abb_t* abb = abb_crear(NULL, NULL);
+    abb_t* abb = abb_crear(strcmp, NULL);
 
     printf("INICIO DE PRUEBAS CON ABB VACIO\n");
     print_test("crear abb", abb);
@@ -19,13 +19,6 @@ static void pruebas_abb_vacio()
     print_test("pertenece devuelve NULL", !abb_pertenece(abb, s));
     print_test("obtener devuelve NULL", abb_obtener(abb, s) == NULL);
     print_test("borrar devuelve NULL", abb_borrar(abb, s) == NULL);
-    print_test("la cantidad de elementos es cero", abb_cantidad(abb) == 0);
-
-    /* Si la clave es NULL devuelve NULL */
-    print_test("guardar NULL devuelve false", !abb_guardar(abb, NULL, NULL));
-    print_test("pertenece devuelve NULL", abb_obtener(abb, NULL) == NULL);
-    print_test("obtener devuelve NULL", abb_obtener(abb, NULL) == NULL);
-    print_test("borrar devuelve NULL", abb_borrar(abb, NULL) == NULL);
     print_test("la cantidad de elementos es cero", abb_cantidad(abb) == 0);
 
     /* Destruyo el abb */

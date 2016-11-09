@@ -192,7 +192,6 @@ static void apilar_nodos_in(pila_t *pila, abb_nodo_t *nodo)
 
 abb_t *abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 {
-    if (!cmp) return NULL;  // Se deben poder comparar las claves
 	abb_t *arbol = malloc(sizeof(abb_t));
 
 	if (!arbol) {
