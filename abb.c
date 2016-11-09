@@ -81,15 +81,16 @@ static abb_nodo_t *buscar_nodo(abb_nodo_t *nodo, const char *clave, abb_comparar
 }
 
 /* Inserta un nodo */
-static abb_nodo_t *insertar_nodo(abb_nodo_t *nodo, abb_nodo_t *nuevo, abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
+static abb_nodo_t *insertar_nodo(abb_nodo_t *nodo, abb_nodo_t *nuevo, abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato, size_t *cantidad)
 {
     if (!nodo) {
+        ++(*cantidad);
         return nuevo;
     } else if (cmp(nuevo->clave, nodo->clave) > 0) {
-        nodo->der = insertar_nodo(nodo->der, nuevo, cmp, destruir_dato);
+        nodo->der = insertar_nodo(nodo->der, nuevo, cmp, destruir_dato, cantidad);
         return nodo;
     } else if (cmp(nuevo->clave, nodo->clave) < 0) {
-        nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp, destruir_dato);
+        nodo->izq = insertar_nodo(nodo->izq, nuevo, cmp, destruir_dato, cantidad);
         return nodo;
     } else {
         /* La clave pertenece al ABB, reemplazo el dato */
@@ -212,8 +213,7 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 	if (!nuevo) {
         return false;
     }
-    arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp, arbol->destruir_dato);
-    ++(arbol->cantidad);
+    arbol->raiz = insertar_nodo(arbol->raiz, nuevo, arbol->cmp, arbol->destruir_dato, &(arbol->cantidad));
 	return true;
 }
 
