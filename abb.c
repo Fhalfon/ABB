@@ -192,6 +192,7 @@ static void apilar_nodos_in(pila_t *pila, abb_nodo_t *nodo)
 
 abb_t *abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 {
+    if (!cmp) return NULL;  // Se deben poder comparar las claves
 	abb_t *arbol = malloc(sizeof(abb_t));
 
 	if (!arbol) {
@@ -208,9 +209,6 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 {
 	abb_nodo_t *nuevo;
 
-    if (!clave) {
-        return NULL; // La clave debe ser válida
-    }
     nuevo = nodo_crear(clave, dato, NULL, NULL);
 	if (!nuevo) {
         return false;
@@ -225,9 +223,6 @@ void *abb_borrar(abb_t *arbol, const char *clave)
     abb_nodo_t *borrado;
     void *dato_salida;
 
-    if (!clave) {
-        return NULL; // La clave debe ser válida
-    }
 	arbol->raiz = buscar_nodo_borrar(arbol->raiz, arbol->cmp, clave, &borrado);
     if (!borrado) {
         return NULL;
@@ -243,9 +238,6 @@ void *abb_obtener(const abb_t *arbol, const char *clave)
 {
 	abb_nodo_t *nodo_salida;
 
-    if (!clave) {
-        return NULL; // La clave debe ser válida
-    }
     nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return NULL;
@@ -257,9 +249,6 @@ bool abb_pertenece(const abb_t *arbol, const char *clave)
 {
 	abb_nodo_t *nodo_salida;
 
-    if (!clave) {
-        return NULL; // La clave debe ser válida
-    }
     nodo_salida = buscar_nodo(arbol->raiz, clave, arbol->cmp);
     if (!nodo_salida)
         return false;
@@ -274,6 +263,7 @@ size_t abb_cantidad(abb_t *arbol)
 
 void abb_destruir(abb_t *arbol)
 {
+    if (!arbol) return;
 	if (arbol->raiz) {
         destruir_nodos(arbol->raiz, arbol->destruir_dato);
     }
@@ -340,9 +330,7 @@ bool abb_iter_in_al_final(const abb_iter_t *iter)
 
 void abb_iter_in_destruir(abb_iter_t *iter)
 {
-    if (!iter) {
-        return;
-    }
+    if (!iter) return;
 	pila_destruir(iter->pila);
 	free(iter);
 }
