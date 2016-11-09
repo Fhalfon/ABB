@@ -156,6 +156,34 @@ static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t
     }
 }
 
+/* Recorre los nodos en in-order recursivamente, comunicando con el valor de retorno en cada llamado si debe seguir la recursión */
+static bool abb_nodo_in_order(abb_nodo_t *nodo, bool visitar(const char *, void *, void *), void *extra)
+{
+    if (!nodo)
+        return true; // Recorrió todo, porque no hay nada para recorrer
+    else if (!abb_nodo_in_order(nodo->izq,visitar,extra))
+        return false; // Si el subárbol izquierdo recibió false, devuelve false
+	else if (!visitar(nodo->clave,nodo->dato,extra))
+        return false; // Visita el nodo actual, comunica a las llamadas previas que deben terminar
+    else if (!abb_nodo_in_order(nodo->der,visitar,extra))
+        return false; // Si el subárbol derecho recibió false, devuelve false
+    else
+        return true;
+}
+
+/* Apila todos los nodos en in-order en una pila válida dada */
+static void apilar_nodos_in(pila_t* pila, abb_nodo_t* nodo)
+{
+    if (!nodo) {
+        return;
+    }
+    /* El orden en el que hay que apilar es el inverso al in-order
+     * por ser una pila. Primero todo el subarbol derecho y luego el izquierdo */
+    apilar_nodos_in(pila, nodo->der);
+    pila_apilar(pila, nodo);
+    apilar_nodos_in(pila, nodo->izq);
+}
+
 /* *****************************************************************
  *                    Primitivas del ABB                           *
  * *****************************************************************/
@@ -281,21 +309,6 @@ void abb_destruir(abb_t *arbol)
  *                 Primitivas del iterador interno                 *
  * *****************************************************************/
 
-/* Recorre los nodos en in-order recursivamente, comunicando con el valor de retorno en cada llamado si debe seguir la recursión */
-static bool abb_nodo_in_order(abb_nodo_t *nodo, bool visitar(const char *, void *, void *), void *extra)
-{
-    if (!nodo)
-        return true; // Recorrió todo, porque no hay nada para recorrer
-    else if (!abb_nodo_in_order(nodo->izq,visitar,extra))
-        return false; // Si el subárbol izquierdo recibió false, devuelve false
-	else if (!visitar(nodo->clave,nodo->dato,extra))
-        return false; // Visita el nodo actual, comunica a las llamadas previas que deben terminar
-    else if (!abb_nodo_in_order(nodo->der,visitar,extra))
-        return false; // Si el subárbol derecho recibió false, devuelve false
-    else
-        return true;
-}
-
 // Pre: el arbol existe y se debe mandar una funcion visitar.
 // Post: recorre cada uno de los elementos del arbol, segun el
 // resultado de la funcion vistar.
@@ -307,17 +320,6 @@ void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void
 /* *****************************************************************
  *                 Primitivas del iterador externo                 *
  * *****************************************************************/
-
-// Avanza lo mas hacia la izquierda posible del padre.
-// Pre: la pila del iterador debe existir.
-// Post: deja en el tope de la pila el elemento mas al a izq.
-static void avanzar_izq(pila_t* pila, abb_nodo_t* actual)
-{
-    abb_nodo_t* aux;
-    for (aux = actual; aux; aux = aux->izq) {
-        pila_apilar(pila, aux); // NO chequea si la pila falla
-    }
-}
 
 // Crea el iterador del arbol y lo deja posicionado en el
 // nodo actual.
@@ -339,10 +341,8 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 	}
 	iter->pila = pila;
 
-    /* Si el abb no es vacío debe posicionarse en el nodo más a la izquierda de la raíz */
-	if (arbol->raiz) {
-	    avanzar_izq(iter->pila, arbol->raiz);
-    }
+    /* Apila todos los nodos en in-order */
+    apilar_nodos_in(iter->pila, arbol->raiz);
 	return iter;
 }
 
@@ -355,15 +355,7 @@ bool abb_iter_in_avanzar(abb_iter_t *iter)
 	if (abb_iter_in_al_final(iter))	{
 		return false;
 	}
-	abb_nodo_t *desapilado = pila_desapilar(iter->pila);
-
-	if (desapilado->der){
-		pila_apilar(iter->pila,desapilado->der);
-		abb_nodo_t* aux = desapilado->der;
-		if (aux->izq){
-			avanzar_izq(iter->pila, aux->izq);
-		}
-	}
+	pila_desapilar(iter->pila);
 	return true;
 }
 
