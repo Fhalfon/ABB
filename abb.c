@@ -33,9 +33,9 @@ typedef struct abb_iter {
  * *****************************************************************/
 
 /* Crea un nodo para el ABB. Copia la clave. Si falla devuelve NULL */
-static abb_nodo_t* nodo_crear(const char * clave, void * dato, abb_nodo_t * izq, abb_nodo_t * der)
+static abb_nodo_t *nodo_crear(const char *clave, void *dato, abb_nodo_t *izq, abb_nodo_t *der)
 {
-	abb_nodo_t* nodo = malloc(sizeof(abb_nodo_t));
+	abb_nodo_t *nodo = malloc(sizeof(abb_nodo_t));
 
 	if (!nodo) {
 		return NULL;
@@ -52,7 +52,7 @@ static abb_nodo_t* nodo_crear(const char * clave, void * dato, abb_nodo_t * izq,
 }
 
 /* Destruye el nodo recibido y sus hijos. Aplica destruir_dato al dato si es distinto de NULL */
-static void destruir_nodos(abb_nodo_t* nodo, void destruir_dato(void *))
+static void destruir_nodos(abb_nodo_t *nodo, void destruir_dato(void *))
 {
     if (!nodo) {
         return;
@@ -66,20 +66,22 @@ static void destruir_nodos(abb_nodo_t* nodo, void destruir_dato(void *))
     free(nodo);
 }
 
-static abb_nodo_t* buscar_nodo(abb_nodo_t* raiz, const char* clave, abb_comparar_clave_t cmp)
+/* Devuelve el nodo que tiene la clave igual a la clave dada, comparando con la función recibida
+ * Si no lo encuentra devuelve NULL */
+static abb_nodo_t *buscar_nodo(abb_nodo_t *nodo, const char *clave, abb_comparar_clave_t cmp)
 {
-	if (!raiz)
+	if (!nodo)
         return NULL;
-	else if (cmp(clave,raiz->clave) == 0)
-		return raiz;
-	else if (cmp(clave,raiz->clave) < 0)
-		return buscar_nodo(raiz->izq, clave, cmp);
+	else if (cmp(clave, nodo->clave) == 0)
+		return nodo;
+	else if (cmp(clave, nodo->clave) < 0)
+		return buscar_nodo(nodo->izq, clave, cmp);
 	else
-        return buscar_nodo(raiz->der, clave, cmp);
+        return buscar_nodo(nodo->der, clave, cmp);
 }
 
 /* Inserta un nodo */
-static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
+static abb_nodo_t *insertar_nodo(abb_nodo_t *nodo, abb_nodo_t *nuevo, abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 {
     if (!nodo) {
         return nuevo;
@@ -91,7 +93,7 @@ static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_com
         return nodo;
     } else {
         /* La clave pertenece al ABB, reemplazo el dato */
-        void * aux = nodo->dato;
+        void *aux = nodo->dato;
         nodo->dato = nuevo->dato;
         if (destruir_dato) {
             destruir_dato(aux);
@@ -104,13 +106,13 @@ static abb_nodo_t * insertar_nodo(abb_nodo_t * nodo, abb_nodo_t * nuevo, abb_com
 }
 
 /* Busca el nodo con la mayor clave en el subárbol dado, lo devuelve a través de maximo */
-static abb_nodo_t * buscar_maximo(abb_nodo_t * actual, abb_nodo_t ** maximo)
+static abb_nodo_t *buscar_maximo(abb_nodo_t *actual, abb_nodo_t **maximo)
 {
     if (!actual) {
         *maximo = NULL;
         return NULL;
     } else if (actual->der) {
-        /* no estoy en el máximo todavía */
+        /* No estoy en el máximo todavía */
         actual->der = buscar_maximo(actual->der, maximo);
         return actual;
     } else {
@@ -121,7 +123,7 @@ static abb_nodo_t * buscar_maximo(abb_nodo_t * actual, abb_nodo_t ** maximo)
 }
 
 /* Busca el nodo que debe borrar, lo borra y engancha el reemplazo con los hijos que tenía el nodo borrado */
-static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t cmp, const char * clave, abb_nodo_t ** nodo_salida)
+static abb_nodo_t *buscar_nodo_borrar(abb_nodo_t *actual, abb_comparar_clave_t cmp, const char *clave, abb_nodo_t **nodo_salida)
 {
     if (!actual) {
         *nodo_salida = NULL;
@@ -134,8 +136,8 @@ static abb_nodo_t * buscar_nodo_borrar(abb_nodo_t * actual, abb_comparar_clave_t
         return actual;
     } else {
         /* clave == actual->clave, actual es el nodo a borrar */
-        abb_nodo_t * reemplazo;
-        abb_nodo_t * reemplazo_izq;
+        abb_nodo_t *reemplazo;
+        abb_nodo_t *reemplazo_izq;
 
         *nodo_salida = actual;
         if (actual->izq) {
@@ -172,7 +174,7 @@ static bool abb_nodo_in_order(abb_nodo_t *nodo, bool visitar(const char *, void 
 }
 
 /* Apila todos los nodos en in-order en una pila válida dada */
-static void apilar_nodos_in(pila_t* pila, abb_nodo_t* nodo)
+static void apilar_nodos_in(pila_t *pila, abb_nodo_t *nodo)
 {
     if (!nodo) {
         return;
@@ -188,14 +190,9 @@ static void apilar_nodos_in(pila_t* pila, abb_nodo_t* nodo)
  *                    Primitivas del ABB                           *
  * *****************************************************************/
 
-// Crea el ABB en caso de que no lo pueda crear devuelve NULL
-// Pre: se deben pasar las funciones cmp destruir_dato. Necesariamente
-// la funcion cmp no puede ser NULL.
-// Post: devuelve un ABB con su funcion de comparar, destruccion
-// y con raiz NULL. En caso de que no pueda crearla devuelve NULL.
-abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
+abb_t *abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 {
-	abb_t* arbol = malloc(sizeof(abb_t));
+	abb_t *arbol = malloc(sizeof(abb_t));
 
 	if (!arbol) {
         return NULL;
@@ -207,14 +204,9 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato)
 	return arbol;
 }
 
-
-// Almacena un dato en el ABB. Si no se encuentra la clave, se crea un nodo, sino
-// se reemplaza el valor previo.
-// Pre: El ABB fue creado.
-// Post: Devuelve true al almacenar con éxito, o false en caso de error.
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 {
-	abb_nodo_t* nuevo;
+	abb_nodo_t *nuevo;
 
     if (!clave) {
         return NULL; // La clave debe ser válida
@@ -228,14 +220,10 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato)
 	return true;
 }
 
-// Devuelve un dato almacenado en el ABB, y destruye el nodo que lo contiene.
-// Pre: El ABB fue creado.
-// Post: Devuelve el dato almacenado y destruye el nodo que lo contenía, o devuelve
-// NULL cuando no se cumplan ciertas condiciones (Por ej.: clave no pertenece)
 void *abb_borrar(abb_t *arbol, const char *clave)
 {
-    abb_nodo_t * borrado;
-    void * dato_salida;
+    abb_nodo_t *borrado;
+    void *dato_salida;
 
     if (!clave) {
         return NULL; // La clave debe ser válida
@@ -251,14 +239,9 @@ void *abb_borrar(abb_t *arbol, const char *clave)
 	return dato_salida;
 }
 
-// Similar a abb_borrar, solo que en este caso no destruye el nodo, solo devuelve
-// el valor, o NULL de no hallarse.
-// Pre: El ABB fue creado.
-// Post: Devuelve el dato almacenado, o devuelve NULL cuando no se cumplan ciertas
-// condiciones (Por ej.: clave no pertenece)
 void *abb_obtener(const abb_t *arbol, const char *clave)
 {
-	abb_nodo_t * nodo_salida;
+	abb_nodo_t *nodo_salida;
 
     if (!clave) {
         return NULL; // La clave debe ser válida
@@ -270,12 +253,9 @@ void *abb_obtener(const abb_t *arbol, const char *clave)
         return nodo_salida->dato;
 }
 
-// Averigua si existe un nodo en el ABB con la clave provista.
-// Pre: El ABB fue creado.
-// Post: Devuelve true de encontrar el nodo, o false en caso contrario.
 bool abb_pertenece(const abb_t *arbol, const char *clave)
 {
-	abb_nodo_t * nodo_salida;
+	abb_nodo_t *nodo_salida;
 
     if (!clave) {
         return NULL; // La clave debe ser válida
@@ -287,16 +267,11 @@ bool abb_pertenece(const abb_t *arbol, const char *clave)
         return true;
 }
 
-// Funcion que permite saber la cantidad de elemtos del arbol.
-// Post: devuelve la cantidad de elemento del arbol.
 size_t abb_cantidad(abb_t *arbol)
 {
 	return arbol->cantidad;
 }
 
-// Destruye el arbol previamente creado.
-// Pre: el arbol debe existir.
-// Post: destruye el arbol.
 void abb_destruir(abb_t *arbol)
 {
 	if (arbol->raiz) {
@@ -309,9 +284,6 @@ void abb_destruir(abb_t *arbol)
  *                 Primitivas del iterador interno                 *
  * *****************************************************************/
 
-// Pre: el arbol existe y se debe mandar una funcion visitar.
-// Post: recorre cada uno de los elementos del arbol, segun el
-// resultado de la funcion vistar.
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra)
 {
     abb_nodo_in_order(arbol->raiz,visitar,extra);
@@ -321,15 +293,10 @@ void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void
  *                 Primitivas del iterador externo                 *
  * *****************************************************************/
 
-// Crea el iterador del arbol y lo deja posicionado en el
-// nodo actual.
-// Pre: el arbol debe existir.
-// Post: devuelte el iterador en la posicion actual. En caso de
-// que el arbol este vacio, el actual apunta a NULL.
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 {
 	abb_iter_t *iter = malloc(sizeof(abb_iter_t));
-    pila_t * pila;
+    pila_t *pila;
 
 	if (!iter) {
 	    return NULL;
@@ -346,10 +313,6 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol)
 	return iter;
 }
 
-// Permite avanzar en el iterador.
-// Pre: el iterador debe existir.
-// Post: devuelve verdadero en caso de que pueda avanzar
-// y falso en caso de que no.
 bool abb_iter_in_avanzar(abb_iter_t *iter)
 {
 	if (abb_iter_in_al_final(iter))	{
@@ -359,13 +322,9 @@ bool abb_iter_in_avanzar(abb_iter_t *iter)
 	return true;
 }
 
-// Devuelve la clave actual del iterador.
-// Pre: iterador debe existir.
-// Post: devuelve la clave almacenada en la posicion actual
-// del iterador. En caso de que este al final, devuelte NULL.
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter)
 {
-    abb_nodo_t * tope;
+    abb_nodo_t *tope;
 
     if (abb_iter_in_al_final(iter)) {
 		return NULL;
@@ -374,18 +333,12 @@ const char *abb_iter_in_ver_actual(const abb_iter_t *iter)
 	return tope->clave;
 }
 
-// Permite saber si el iterador se encuentra al final.
-// Pre: el iterador debe existir.
-// Post: devuelve verdadero en caso de que este al final,
-// falso en caso de que no este al final.
 bool abb_iter_in_al_final(const abb_iter_t *iter)
 {
 	return pila_esta_vacia(iter->pila);
 }
 
-// Destruye el iterador.
-// Pre: el iterador debe existir.
-void abb_iter_in_destruir(abb_iter_t* iter)
+void abb_iter_in_destruir(abb_iter_t *iter)
 {
     if (!iter) {
         return;
