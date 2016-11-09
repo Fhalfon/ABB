@@ -271,34 +271,34 @@ static void pruebas_abb_iter_externo_algunos_elementos()
     iter = abb_iter_in_crear(abb);
 
     /* Inicio de pruebas con el iterador */
-	print_test("El iterador fue creado", iter != NULL);
-	print_test("El iterador no esta al final",!abb_iter_in_al_final(iter));
+	print_test("el iterador fue creado", iter != NULL);
+	print_test("el iterador no esta al final",!abb_iter_in_al_final(iter));
     print_test("la clave es 'a'", strcmp(abb_iter_in_ver_actual(iter), claves[1]) == 0);
-	print_test("El iterador no esta al final", !abb_iter_in_al_final(iter));
+	print_test("el iterador no esta al final", !abb_iter_in_al_final(iter));
 
     /* Recorro el abb con el iterador */
-	print_test("Primer clave es 'a'", strcmp(abb_iter_in_ver_actual(iter), claves[1]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Segunda clave es 'b'", strcmp(abb_iter_in_ver_actual(iter), claves[3]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Tercera clave es 'c'", strcmp(abb_iter_in_ver_actual(iter), claves[8]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Cuarta clave es 'd'", strcmp(abb_iter_in_ver_actual(iter), claves[0]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("El iterador no esta al final", !abb_iter_in_al_final(iter));
-	print_test("Quinta clave es 'e'", strcmp(abb_iter_in_ver_actual(iter), claves[7]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Sexta clave es 'f'", strcmp(abb_iter_in_ver_actual(iter), claves[2]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Septima clave es 'g'", strcmp(abb_iter_in_ver_actual(iter), claves[6]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-	print_test("Octava clave es 'h'", strcmp(abb_iter_in_ver_actual(iter), claves[5]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
-    print_test("Octava clave es 'i'", strcmp(abb_iter_in_ver_actual(iter), claves[4]) == 0);
-	print_test("Avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("primer clave es 'a'", strcmp(abb_iter_in_ver_actual(iter), claves[1]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("segunda clave es 'b'", strcmp(abb_iter_in_ver_actual(iter), claves[3]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("tercera clave es 'c'", strcmp(abb_iter_in_ver_actual(iter), claves[8]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("cuarta clave es 'd'", strcmp(abb_iter_in_ver_actual(iter), claves[0]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("el iterador no esta al final", !abb_iter_in_al_final(iter));
+	print_test("quinta clave es 'e'", strcmp(abb_iter_in_ver_actual(iter), claves[7]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("sexta clave es 'f'", strcmp(abb_iter_in_ver_actual(iter), claves[2]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("septima clave es 'g'", strcmp(abb_iter_in_ver_actual(iter), claves[6]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+	print_test("octava clave es 'h'", strcmp(abb_iter_in_ver_actual(iter), claves[5]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
+    print_test("octava clave es 'i'", strcmp(abb_iter_in_ver_actual(iter), claves[4]) == 0);
+	print_test("avanzo con el iterador", abb_iter_in_avanzar(iter));
 
     /* Chequeo que el iterador está al final */
-	print_test("El iterador esta al final",abb_iter_in_al_final(iter));
+	print_test("el iterador esta al final",abb_iter_in_al_final(iter));
 
     /* Destruyo el abb y el iterador */
 	abb_iter_in_destruir(iter);
@@ -307,20 +307,23 @@ static void pruebas_abb_iter_externo_algunos_elementos()
     print_test("el iterador fue destruido", true);
 }
 
-/* pruebas para el iter interno del ABB */
-static bool imprimir_clave(const char *clave, void *dato, void *extra)
+/* Función auxiliar para la prueba del iterador interno del ABB */
+static bool chequear_clave(const char *clave, void *dato, void *extra)
 {
-	if (clave) {
-		printf("%s\n",clave);
-	    return true;
-	}
-	return false;
+    static int i;
+    char ** strings = extra;
+
+    print_test("el elemento es correcto", strcmp(clave, strings[i]) == 0);
+    i++;
+    return true;
 }
 
 static void pruebas_abb_iter_interno()
 {
     char * s[] = {"Dron", "Bazar", "Fascinante", "Aereo", "Cazador", "Espeluznante",
                   "Grafo", "Casa", "Barco", "Dromedario", "Avion", "Elefante"};
+    char * ordenado[] = {"Aereo", "Avion", "Barco", "Bazar", "Casa", "Cazador", "Dromedario",
+                         "Dron", "Elefante", "Espeluznante", "Fascinante", "Grafo"};
     int datos[] = {10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65};
     abb_t * abb = abb_crear(strcmp, NULL);
 
@@ -341,9 +344,9 @@ static void pruebas_abb_iter_interno()
     print_test("guardar Avion-60", abb_guardar(abb, s[10], datos+11));
     print_test("guardar Elefante-65", abb_guardar(abb, s[11], datos+12));
 
-    /* Recorro los nodos en inorden y se imprime su dato */
-    printf("RECORRIDO INORDER\n");
-    abb_in_order(abb, imprimir_clave, NULL);
+    /* Recorro los nodos en in-orden y se chequea su clave */
+    printf("RECORRIDO IN-ORDER DE LOS 12 ELEMENTOS\n");
+    abb_in_order(abb, chequear_clave, ordenado);
 
     /* Destruyo el abb */
     abb_destruir(abb);
